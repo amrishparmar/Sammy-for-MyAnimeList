@@ -2,25 +2,28 @@ import click
 import search
 
 
-def menu_heading(submenu=None):
+def menu_heading(username, submenu=None):
     """Heading for all menus
 
-    :param submenu: String with that name of submenu
+    :param username: a string containing the username of the authenticated user
+    :param submenu: a string with the name of submenu
     """
     click.clear()
     click.echo("===== MAL CLI Application =====")
-    click.echo("Logged in as: TODO\n")
-    click.echo()
+    click.echo("Logged in as: {}\n".format(username))
     if submenu is not None:
         click.echo("--- Update your {} list ---".format(submenu))
 
 
-def main_menu():
-    """Main main for program"""
+def main_menu(credentials):
+    """Main main for program
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
 
     # loop lets the program run until user decides to quit
     while True:
-        menu_heading()
+        menu_heading(credentials[0])
         click.echo("1) Search for an anime")
         click.echo("2) Search for a manga")
         click.echo("3) Update your anime list")
@@ -35,15 +38,18 @@ def main_menu():
         else:
             # try/except to handle trying to call options that aren't in function map dictionary
             try:
-                _mm_mapping[choice]()
+                _mm_mapping[choice](credentials)
             except KeyError:
                 continue
 
 
-def update_anime_menu():
-    """Menu with options for updating user anime list"""
+def update_anime_menu(credentials):
+    """Menu with options for updating user anime list
 
-    menu_heading(submenu="anime")
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
+
+    menu_heading(credentials[0], submenu="anime")
     click.echo("1) Add new anime")
     click.echo("2) Quick increment episode count for existing anime")
     click.echo("3) Set episode count for existing anime")
@@ -58,11 +64,13 @@ def update_anime_menu():
     # _update_anime_mapping[choice]()
 
 
-def update_manga_menu():
-    """Menu with options for updating user manga list"""
+def update_manga_menu(credentials):
+    """Menu with options for updating user manga list
 
-    menu_heading(submenu="manga")
-    click.echo("--- Update your anime list ---")
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
+
+    menu_heading(credentials[0], submenu="manga")
     click.echo("1) Add new manga")
     click.echo("2) Quick increment chapter count for existing manga")
     click.echo("3) Quick increment volume count for existing manga")

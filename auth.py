@@ -47,7 +47,7 @@ def authenticate_user():
     # check if the user wishes to continue trying
     if click.confirm("Try again?"):
         # try again
-        authenticate_user()
+        return authenticate_user()
     else:
         # the user wanted to quit
         return False
