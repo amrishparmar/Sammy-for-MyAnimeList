@@ -1,18 +1,24 @@
 import click
-import sys
+import search
 
 
 def main_menu():
     while True:
         click.clear()
         click.echo("===== MAL CLI Application =====")
+        click.echo("Logged in as: TODO\n")
         click.echo("1) Search for an anime")
         click.echo("2) Search for a manga")
         click.echo("3) Update your anime list")
         click.echo("4) Update your manga list")
         click.echo("0) Exit application")
+
         choice = click.prompt("Please choose an option", type=int)
-        _mm_mapping[choice]()
+
+        if choice == 0:
+            return
+        else:
+            _mm_mapping[choice]()
 
 
 def update_anime_menu():
@@ -49,11 +55,10 @@ def update_manga_menu():
 
 
 _mm_mapping = {
-    1: None,
-    2: None,
+    1: search.anime_search,
+    2: search.manga_search,
     3: update_anime_menu,
-    4: update_manga_menu,
-    0: sys.exit
+    4: update_manga_menu
 }
 
 _update_anime_mapping = {
@@ -74,6 +79,3 @@ _update_manga_mapping = {
     7: None,
 }
 
-
-if __name__ == "__main__":
-    main_menu()

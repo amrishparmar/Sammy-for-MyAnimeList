@@ -3,7 +3,6 @@ import requests
 
 
 def anime_search():
-
     pass
 
 
