@@ -3,15 +3,16 @@ import sys
 
 
 def main_menu():
-    click.clear()
-    click.echo("===== MAL CLI Application =====")
-    click.echo("1) Search for an anime")
-    click.echo("2) Search for a manga")
-    click.echo("3) Update your anime list")
-    click.echo("4) Update your manga list")
-    click.echo("0) Exit application")
-    choice = click.prompt("Please choose an option", type=int)
-    _mm_mapping[choice]()
+    while True:
+        click.clear()
+        click.echo("===== MAL CLI Application =====")
+        click.echo("1) Search for an anime")
+        click.echo("2) Search for a manga")
+        click.echo("3) Update your anime list")
+        click.echo("4) Update your manga list")
+        click.echo("0) Exit application")
+        choice = click.prompt("Please choose an option", type=int)
+        _mm_mapping[choice]()
 
 
 def update_anime_menu():
@@ -25,7 +26,9 @@ def update_anime_menu():
     click.echo("5) Set status for existing anime")
     click.echo("9) Go back to main menu")
     choice = click.prompt("Please choose an option", type=int)
-    _update_anime_mapping[choice]()
+    if choice == 9:
+        return
+    # _update_anime_mapping[choice]()
 
 
 def update_manga_menu():
@@ -40,7 +43,9 @@ def update_manga_menu():
     click.echo("7) Set status for existing manga")
     click.echo("9) Go back to main menu")
     choice = click.prompt("Please choose an option", type=int)
-    _update_manga_mapping[choice]()
+    if choice == 9:
+        return
+    # _update_manga_mapping[choice]()
 
 
 _mm_mapping = {
@@ -57,7 +62,6 @@ _update_anime_mapping = {
     3: None,
     4: None,
     5: None,
-    9: main_menu,
 }
 
 _update_manga_mapping = {
@@ -68,7 +72,6 @@ _update_manga_mapping = {
     5: None,
     6: None,
     7: None,
-    9: main_menu,
 }
 
 
