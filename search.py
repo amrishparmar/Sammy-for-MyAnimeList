@@ -52,14 +52,17 @@ def anime_search(credentials):
             click.echo(title_format.format(i, result.title.get_text(), result.synonyms.get_text()))
             i += 1
 
+        click.echo("{}> [None of these]".format(num_results + 1))
+
         while True:
             option = click.prompt("Please choose an option", type=int)
-            if 1 <= option <= num_results:
+            if 1 <= option <= num_results + 1:
                 break
             else:
-                click.echo("You must enter a value between {} and {}".format(1, num_results))
+                click.echo("You must enter a value between {} and {}".format(1, num_results + 1))
 
-        display_entry_details(all_matched[option - 1])
+        if option != num_results + 1:
+            display_entry_details(all_matched[option - 1])
 
     click.pause()
 
