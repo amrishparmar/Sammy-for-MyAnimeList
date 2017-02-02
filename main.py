@@ -9,8 +9,8 @@ def main():
 
     if credentials:
         menus.main_menu(credentials)
-    else:
-        click.echo("Bye!")
+
+    click.echo("Bye!")
 
 if __name__ == '__main__':
     main()
