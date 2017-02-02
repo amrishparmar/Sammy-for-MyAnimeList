@@ -14,8 +14,12 @@ def display_entry_details(entry):
         if detail != "\n":
             # replace in tag name the underscores with spaces and convert to title case
             detail_name = detail.name.replace("_", " ").title()
-            # unescape html entities and convert break tags to newlines
-            detail_string = html.unescape(detail.string).replace("<br />", "\n")
+
+            detail_string = detail.string
+
+            if detail_string is not None:
+                # unescape html entities and convert break tags to newlines
+                detail_string = html.unescape(detail_string).replace("<br />", "\n")
 
             click.echo("{}: {}".format(detail_name, detail_string))
 
@@ -58,9 +62,6 @@ def anime_search(credentials):
         display_entry_details(all_matched[option - 1])
 
     click.pause()
-
-
-
 
 def manga_search(credentials):
     pass
