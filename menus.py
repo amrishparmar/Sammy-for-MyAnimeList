@@ -1,5 +1,6 @@
 import click
 import search
+import update
 
 
 def menu_heading(username, submenu=None):
@@ -61,7 +62,12 @@ def update_anime_menu(credentials):
 
         if choice == 9:
             return
-        # _update_anime_mapping[choice]()
+        else:
+            # try/except to handle trying to call options that aren't in function map dictionary
+            try:
+                _update_anime_mapping[choice](credentials)
+            except KeyError:
+                continue
 
 
 def update_manga_menu(credentials):
@@ -97,10 +103,10 @@ _mm_mapping = {
 # function mappings for update anime menu
 _update_anime_mapping = {
     1: None,
-    2: None,
+    2: update.search_list,
     3: None,
     4: None,
-    5: None,
+    5: None
 }
 
 # function mappings for update manga menu

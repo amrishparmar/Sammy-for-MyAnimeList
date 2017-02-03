@@ -39,10 +39,10 @@ def search(credentials, search_type):
     click.echo()
 
     # get search terms from the user
-    search = click.prompt("Enter a search term")
+    search_string = click.prompt("Enter a search term")
 
     # replace spaces with + chars
-    search_query = search.replace(" ", "+")
+    search_query = search_string.replace(" ", "+")
 
     # prepare the query string
     query_string = "https://myanimelist.net/api/{}/search.xml?q={}".format(search_type, search_query)
@@ -50,7 +50,7 @@ def search(credentials, search_type):
     r = requests.get(query_string, auth=credentials, stream=True)
 
     if r.status_code == 204:
-        click.echo("No results found for query \"{}\"".format(search))
+        click.echo("No results found for query \"{}\"".format(search_string))
     else:
         # decode the raw content so beautiful soup can read it as xml not a string
         r.raw.decode_content = True
@@ -63,7 +63,7 @@ def search(credentials, search_type):
 
         if num_results == 0:
             # shouldn't ever get to here as no results should yield a 204 error, but leave check for now
-            click.echo("No results found for query \"{}\"".format(search))
+            click.echo("No results found for query \"{}\"".format(search_string))
         elif num_results == 1:
             display_entry_details(all_matched[0])
         else:
