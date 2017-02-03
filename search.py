@@ -26,11 +26,16 @@ def display_entry_details(entry):
             click.echo("{}: {}".format(detail_name, detail_string))
 
 
-def anime_search(credentials):
-    """Search for an anime and print out the results
+def search(credentials, search_type):
+    """Search for an anime or manga entry and print out the results
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :param search_type: A string denoting the media type to search for, should be either "anime" or "manga"
+    :return:
     """
+    if search_type not in ["anime", "manga"]:
+        raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
+
     click.echo()
 
     # get search terms from the user
@@ -40,7 +45,7 @@ def anime_search(credentials):
     search_query = search.replace(" ", "+")
 
     # prepare the query string
-    query_string = "https://myanimelist.net/api/anime/search.xml?q={}".format(search_query)
+    query_string = "https://myanimelist.net/api/{}/search.xml?q={}".format(search_type, search_query)
     # get the results
     r = requests.get(query_string, auth=credentials, stream=True)
 
@@ -89,5 +94,17 @@ def anime_search(credentials):
     click.pause()
 
 
+def anime_search(credentials):
+    """Search for an anime and print out the results
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
+    search(credentials, "anime")
+
+
 def manga_search(credentials):
-    pass
+    """Search for a manga and print out the results
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
+    search(credentials, "manga")
