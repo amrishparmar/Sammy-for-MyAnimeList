@@ -48,20 +48,20 @@ def update_anime_menu(credentials):
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
+    while True:
+        menu_heading(credentials[0], submenu="anime")
+        click.echo("1) Add new anime")
+        click.echo("2) Quick increment episode count for existing anime")
+        click.echo("3) Set episode count for existing anime")
+        click.echo("4) Set score for existing anime")
+        click.echo("5) Set status for existing anime")
+        click.echo("9) Go back to main menu")
 
-    menu_heading(credentials[0], submenu="anime")
-    click.echo("1) Add new anime")
-    click.echo("2) Quick increment episode count for existing anime")
-    click.echo("3) Set episode count for existing anime")
-    click.echo("4) Set score for existing anime")
-    click.echo("5) Set status for existing anime")
-    click.echo("9) Go back to main menu")
+        choice = click.prompt("Please choose an option", type=int)
 
-    choice = click.prompt("Please choose an option", type=int)
-
-    if choice == 9:
-        return
-    # _update_anime_mapping[choice]()
+        if choice == 9:
+            return
+        # _update_anime_mapping[choice]()
 
 
 def update_manga_menu(credentials):
@@ -69,22 +69,22 @@ def update_manga_menu(credentials):
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
+    while True:
+        menu_heading(credentials[0], submenu="manga")
+        click.echo("1) Add new manga")
+        click.echo("2) Quick increment chapter count for existing manga")
+        click.echo("3) Quick increment volume count for existing manga")
+        click.echo("4) Set chapter count for existing manga")
+        click.echo("5) Set volume count for existing manga")
+        click.echo("6) Set score for existing manga")
+        click.echo("7) Set status for existing manga")
+        click.echo("9) Go back to main menu")
 
-    menu_heading(credentials[0], submenu="manga")
-    click.echo("1) Add new manga")
-    click.echo("2) Quick increment chapter count for existing manga")
-    click.echo("3) Quick increment volume count for existing manga")
-    click.echo("4) Set chapter count for existing manga")
-    click.echo("5) Set volume count for existing manga")
-    click.echo("6) Set score for existing manga")
-    click.echo("7) Set status for existing manga")
-    click.echo("9) Go back to main menu")
+        choice = click.prompt("Please choose an option", type=int)
 
-    choice = click.prompt("Please choose an option", type=int)
-
-    if choice == 9:
-        return
-    # _update_manga_mapping[choice]()
+        if choice == 9:
+            return
+        # _update_manga_mapping[choice]()
 
 # function mappings for main menu
 _mm_mapping = {
