@@ -3,30 +3,29 @@ import requests
 from bs4 import BeautifulSoup
 
 
-def increment_episode_count(credentials, anime_id):
-
-    r = requests.get("https://myanimelist.net/malappinfo.php?u={}&type=anime".format(credentials[0]), stream=True)
-    r.raw.decode_content = True
-
-    soup = BeautifulSoup(r.raw, "xml")
+def increment_episode_count(credentials, anime_id, list_data_xml):
 
     current_ep_count = 0
+    anime_title = ""
 
-    for entry in soup.find_all("anime"):
+    for entry in list_data_xml.find_all("anime"):
         if entry.series_animedb_id.get_text() == anime_id:
             current_ep_count = int(entry.my_watched_episodes.get_text())
+            anime_title = entry.series_title.get_text()
 
     xml = """<?xml version="1.0" encoding="UTF-8"?><entry><episode>{}</episode></entry>""".format(current_ep_count + 1)
 
     r = requests.get("https://myanimelist.net/api/animelist/update/{}.xml?data={}".format(anime_id, xml),
                      auth=credentials)
 
-    click.echo(r.status_code)
-    click.echo(r.text)
+    if r.status_code == 200:
+        click.echo("Updated \"{}\" to episode {}".format(anime_title, current_ep_count + 1))
+    else:
+        click.echo("Error updating anime. Please try again.")
 
 
 def search_list(credentials):
-    search_string = click.prompt("Enter name of anime to search for")
+    search_string = click.prompt("Enter name of anime to update")
 
     search_string = search_string.lower()
 
@@ -59,7 +58,7 @@ def search_list(credentials):
     if num_results == 0:
         click.echo("No results found")
     elif num_results == 1:
-        increment_episode_count(credentials, matches[0].series_animedb_id.get_text())
+        increment_episode_count(credentials, matches[0].series_animedb_id.get_text(), soup)
     else:
         click.echo("We found {} results. Did you mean:".format(num_results))
         # counter for labelling each element in the list
@@ -82,6 +81,6 @@ def search_list(credentials):
 
         # check that the user didn't choose the none of these option before trying to display entry
         if option != num_results + 1:
-            increment_episode_count(credentials, matches[option - 1].series_animedb_id.get_text())
+            increment_episode_count(credentials, matches[option - 1].series_animedb_id.get_text(), soup)
 
     click.pause()
