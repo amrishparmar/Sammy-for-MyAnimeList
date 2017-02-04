@@ -19,7 +19,8 @@ def increment_episode_count(credentials):
                 current_ep_count = int(entry.my_watched_episodes.get_text())
                 anime_title = entry.series_title.get_text()
 
-        xml = """<?xml version="1.0" encoding="UTF-8"?><entry><episode>{}</episode></entry>""".format(current_ep_count + 1)
+        xml = """<?xml version="1.0" encoding="UTF-8"?><entry><episode>{}</episode></entry>""".format(
+            current_ep_count + 1)
 
         r = requests.get("https://myanimelist.net/api/animelist/update/{}.xml?data={}".format(anime_id, xml),
                          auth=credentials)
@@ -32,7 +33,10 @@ def increment_episode_count(credentials):
     click.pause()
 
 
-def increment_chapter_count(credentials):
+def increment_chapter_volume_count(credentials, field_type):
+    if field_type not in ["chapter", "volume"]:
+        raise ValueError("Invalid argument for {}, must be either {} or {}.".format(field_type, "chapter", "volume"))
+
     result = search_list(credentials[0], "manga")
 
     if result is not None:
@@ -40,53 +44,38 @@ def increment_chapter_count(credentials):
 
         manga_id = manga_entry.series_mangadb_id.get_text()
 
-        current_chapter_count = 0
+        current_field_count = 0
         manga_title = ""
 
         for entry in list_data_xml.find_all("manga"):
             if entry.series_mangadb_id.get_text() == manga_id:
-                current_chapter_count = int(entry.my_read_chapters.get_text())
+                current_field_count = int(
+                    entry.my_read_chapters.get_text() if field_type == "chapter" else entry.my_read_volumes.get_text())
                 manga_title = entry.series_title.get_text()
 
-        xml = """<?xml version="1.0" encoding="UTF-8"?><entry><chapter>{}</chapter></entry>""".format(current_chapter_count + 1)
+        xml = """<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>""".format(field_type,
+                                                                                               current_field_count + 1)
 
         r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml?data={}".format(manga_id, xml),
                          auth=credentials)
 
         if r.status_code == 200:
-            click.echo("Updated \"{}\" to chapter {}".format(manga_title, current_chapter_count + 1))
+            click.echo("Updated \"{}\" to chapter {}".format(manga_title, current_field_count + 1))
         else:
             click.echo("Error updating manga. Please try again.")
 
     click.pause()
 
 
+def increment_chapter_count(credentials):
+    increment_chapter_volume_count(credentials, "chapter")
+
+
 def increment_volume_count(credentials):
-    manga_id, list_data_xml = search_list(credentials[0], "manga")
-
-    current_volume_count = 0
-    manga_title = ""
-
-    for entry in list_data_xml.find_all("manga"):
-        if entry.series_mangadb_id.get_text() == manga_id:
-            current_volume_count = int(entry.my_read_volumes.get_text())
-            manga_title = entry.series_title.get_text()
-
-    xml = """<?xml version="1.0" encoding="UTF-8"?><entry><volume>{}</volume></entry>""".format(current_volume_count + 1)
-
-    r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml?data={}".format(manga_id, xml),
-                     auth=credentials)
-
-    if r.status_code == 200:
-        click.echo("Updated \"{}\" to volume {}".format(manga_title, current_volume_count + 1))
-    else:
-        click.echo("Error updating manga. Please try again.")
-
-    click.pause()
+    increment_chapter_volume_count(credentials, "volume")
 
 
 def search_list(username, search_type):
-
     search_string = click.prompt("Enter name of {} to update".format(search_type))
 
     search_string = search_string.lower()
