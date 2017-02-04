@@ -24,8 +24,49 @@ def increment_episode_count(credentials, anime_id, list_data_xml):
         click.echo("Error updating anime. Please try again.")
 
 
-def search_list(credentials):
-    search_string = click.prompt("Enter name of anime to update")
+def increment_chapter_count(credentials, manga_id, list_data_xml):
+    current_chapter_count = 0
+    manga_title = ""
+
+    for entry in list_data_xml.find_all("manga"):
+        if entry.series_mangadb_id.get_text() == manga_id:
+            current_chapter_count = int(entry.my_read_chapters.get_text())
+            manga_title = entry.series_title.get_text()
+
+    xml = """<?xml version="1.0" encoding="UTF-8"?><entry><chapter>{}</chapter></entry>""".format(current_chapter_count + 1)
+
+    r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml?data={}".format(manga_id, xml),
+                     auth=credentials)
+
+    if r.status_code == 200:
+        click.echo("Updated \"{}\" to chapter {}".format(manga_title, current_chapter_count + 1))
+    else:
+        click.echo("Error updating manga. Please try again.")
+
+
+def increment_volume_count(credentials, manga_id, list_data_xml):
+    current_volume_count = 0
+    manga_title = ""
+
+    for entry in list_data_xml.find_all("manga"):
+        if entry.series_mangadb_id.get_text() == manga_id:
+            current_volume_count = int(entry.my_read_volumes.get_text())
+            manga_title = entry.series_title.get_text()
+
+    xml = """<?xml version="1.0" encoding="UTF-8"?><entry><volume>{}</volume></entry>""".format(current_volume_count + 1)
+
+    r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml?data={}".format(manga_id, xml),
+                     auth=credentials)
+
+    if r.status_code == 200:
+        click.echo("Updated \"{}\" to volume {}".format(manga_title, current_volume_count + 1))
+    else:
+        click.echo("Error updating manga. Please try again.")
+
+
+def search_list(credentials, search_type):
+
+    search_string = click.prompt("Enter name of {} to update".format(search_type))
 
     search_string = search_string.lower()
 
@@ -33,14 +74,14 @@ def search_list(credentials):
 
     malappinfo = "https://myanimelist.net/malappinfo.php"
 
-    r = requests.get(malappinfo, params={"u": credentials[0], "type": "anime"}, stream=True)
+    r = requests.get(malappinfo, params={"u": credentials[0], "type": search_type}, stream=True)
     r.raw.decode_content = True
 
     soup = BeautifulSoup(r.raw, "xml")
 
     matches = []
 
-    for entry in soup.find_all("anime"):
+    for entry in soup.find_all(search_type):
         series_title_lower = entry.series_title.get_text().lower()
         series_synonyms_lower = entry.series_synonyms.get_text().lower()
 
@@ -58,7 +99,7 @@ def search_list(credentials):
     if num_results == 0:
         click.echo("No results found")
     elif num_results == 1:
-        increment_episode_count(credentials, matches[0].series_animedb_id.get_text(), soup)
+        return credentials, matches[0].series_animedb_id.get_text(), soup
     else:
         click.echo("We found {} results. Did you mean:".format(num_results))
         # counter for labelling each element in the list
@@ -81,6 +122,7 @@ def search_list(credentials):
 
         # check that the user didn't choose the none of these option before trying to display entry
         if option != num_results + 1:
-            increment_episode_count(credentials, matches[option - 1].series_animedb_id.get_text(), soup)
+            return credentials, matches[option - 1].series_animedb_id.get_text(), soup
 
     click.pause()
+    return None
