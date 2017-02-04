@@ -90,7 +90,12 @@ def update_manga_menu(credentials):
 
         if choice == 9:
             return
-        # _update_manga_mapping[choice]()
+        else:
+            # try/except to handle trying to call options that aren't in function map dictionary
+            try:
+                _update_manga_mapping[choice](credentials)
+            except KeyError:
+                continue
 
 # function mappings for main menu
 _mm_mapping = {
@@ -103,7 +108,7 @@ _mm_mapping = {
 # function mappings for update anime menu
 _update_anime_mapping = {
     1: None,
-    2: update.search_list,
+    2: update.increment_episode_count,
     3: None,
     4: None,
     5: None
@@ -112,8 +117,8 @@ _update_anime_mapping = {
 # function mappings for update manga menu
 _update_manga_mapping = {
     1: None,
-    2: None,
-    3: None,
+    2: update.increment_chapter_count,
+    3: update.increment_volume_count,
     4: None,
     5: None,
     6: None,
