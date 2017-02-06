@@ -57,24 +57,23 @@ def search(credentials, search_type):
         soup = BeautifulSoup(r.raw, "xml")
 
         # get all entries
-        all_matched = soup.find_all("entry")
+        matches = soup.find_all("entry")
         # store the length of all_matched list since needed multiple times
-        num_results = len(all_matched)
+        num_results = len(matches)
 
         if num_results == 0:
             # shouldn't ever get to here as no results should yield a 204 error, but leave check for now
             click.echo("No results found for query \"{}\"".format(search_string))
         elif num_results == 1:
-            display_entry_details(all_matched[0])
+            display_entry_details(matches[0])
         else:
             click.echo("We found {} results. Did you mean:".format(num_results))
-            # counter for labelling each element in the list
-            i = 1
-            for result in all_matched:
+
+            # iterate over the matches and print them out
+            for i in range(num_results):
                 # use a different layout for entries that don't have any synonyms
-                title_format = "{}> {} ({})" if result.synonyms.get_text() != "" else "{}> {}"
-                click.echo(title_format.format(i, result.title.get_text(), result.synonyms.get_text()))
-                i += 1
+                title_format = "{}> {} ({})" if matches[i].synonyms.get_text() != "" else "{}> {}"
+                click.echo(title_format.format(i, matches[i].title.get_text(), matches[i].synonyms.get_text()))
 
             click.echo("{}> [None of these]".format(num_results + 1))
 
@@ -88,7 +87,7 @@ def search(credentials, search_type):
 
             # check that the user didn't choose the none of these option before trying to display entry
             if option != num_results + 1:
-                display_entry_details(all_matched[option - 1])
+                display_entry_details(matches[option - 1])
 
     # await a keypress before continuing so that it doesn't go straight back to menu
     click.pause()
