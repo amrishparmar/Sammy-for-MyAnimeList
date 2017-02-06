@@ -73,7 +73,7 @@ def search(credentials, search_type):
             for i in range(num_results):
                 # use a different layout for entries that don't have any synonyms
                 title_format = "{}> {} ({})" if matches[i].synonyms.get_text() != "" else "{}> {}"
-                click.echo(title_format.format(i, matches[i].title.get_text(), matches[i].synonyms.get_text()))
+                click.echo(title_format.format(i + 1, matches[i].title.get_text(), matches[i].synonyms.get_text()))
 
             click.echo("{}> [None of these]".format(num_results + 1))
 
