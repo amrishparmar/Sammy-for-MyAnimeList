@@ -1,6 +1,7 @@
 import click
 import requests
 from bs4 import BeautifulSoup
+from constants import anime_status_map, anime_type_map, manga_status_map, manga_type_map
 
 
 def increment_episode_count(credentials):
@@ -122,6 +123,7 @@ def search_list(username, search_type):
     :param search_type: A string, which
     :return:
     """
+
     if search_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 
@@ -193,3 +195,48 @@ def search_list(username, search_type):
         # check that the user didn't choose the none of these option before returning the match
         if option != num_results + 1:
             return matches[option - 1], soup
+
+
+def view_list(username, search_type):
+    if search_type not in ["anime", "manga"]:
+        raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
+
+    # the base url of the user list xml data
+    malappinfo = "https://myanimelist.net/malappinfo.php"
+
+    # make the request to the server and get the results
+    r = requests.get(malappinfo, params={"u": username, "type": search_type}, stream=True)
+    r.raw.decode_content = True
+
+    soup = BeautifulSoup(r.raw, "xml")
+
+    i = 1
+    for entry in soup.find_all(search_type):
+        layout_string = "{}> {}" + ("\n    - {}: {}" * (4 if search_type == "anime" else 5))
+        if search_type == "anime":
+            click.echo(layout_string.format(
+                i, entry.series_title.get_text(),
+                "Status", anime_status_map[entry.my_status.get_text()],
+                "Score", entry.my_score.get_text(),
+                "Type", anime_type_map[entry.series_type.get_text()],
+                "Progress", entry.my_watched_episodes.get_text() + "/" + entry.series_episodes.get_text()))
+        else:
+            click.echo(layout_string.format(
+                i, entry.series_title.get_text(),
+                "Status", manga_status_map[entry.my_status.get_text()],
+                "Score", entry.my_score.get_text(),
+                "Type", manga_type_map[entry.series_type.get_text()],
+                "Chapters", entry.my_read_chapters.get_text() + "/" + entry.series_chapters.get_text(),
+                "Volumes", entry.my_read_volumes.get_text() + "/" + entry.series_volumes.get_text()))
+
+        i += 1
+
+    click.pause()
+
+
+def view_anime_list(credentials):
+    view_list(credentials[0], "anime")
+
+
+def view_manga_list(credentials):
+    view_list(credentials[0], "manga")
