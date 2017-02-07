@@ -34,14 +34,10 @@ def main_menu(credentials):
         # get a choice for the user
         choice = click.prompt("Please choose an option", type=int)
 
-        if choice == 0:
+        if choice in range(1, 5):
+            _mm_mapping[choice](credentials)
+        elif choice == 0:
             return
-        else:
-            # try/except to handle trying to call options that aren't in function map dictionary
-            try:
-                _mm_mapping[choice](credentials)
-            except KeyError:
-                continue
 
 
 def update_anime_menu(credentials):
@@ -51,23 +47,20 @@ def update_anime_menu(credentials):
     """
     while True:
         menu_heading(credentials[0], submenu="anime")
-        click.echo("1) Add new anime")
-        click.echo("2) Quick increment episode count for existing anime")
-        click.echo("3) Set episode count for existing anime")
-        click.echo("4) Set score for existing anime")
-        click.echo("5) Set status for existing anime")
+        click.echo("1) View my anime list")
+        click.echo("2) Add new anime")
+        click.echo("3) Quick increment episode count for existing anime")
+        click.echo("4) Set episode count for existing anime")
+        click.echo("5) Set score for existing anime")
+        click.echo("6) Set status for existing anime")
         click.echo("9) Go back to main menu")
 
         choice = click.prompt("Please choose an option", type=int)
 
-        if choice == 9:
+        if choice in range(1, 7):
+            _update_anime_mapping[choice](credentials)
+        elif choice == 9:
             return
-        else:
-            # try/except to handle trying to call options that aren't in function map dictionary
-            try:
-                _update_anime_mapping[choice](credentials)
-            except KeyError:
-                continue
 
 
 def update_manga_menu(credentials):
@@ -77,25 +70,22 @@ def update_manga_menu(credentials):
     """
     while True:
         menu_heading(credentials[0], submenu="manga")
-        click.echo("1) Add new manga")
-        click.echo("2) Quick increment chapter count for existing manga")
-        click.echo("3) Quick increment volume count for existing manga")
-        click.echo("4) Set chapter count for existing manga")
-        click.echo("5) Set volume count for existing manga")
-        click.echo("6) Set score for existing manga")
-        click.echo("7) Set status for existing manga")
+        click.echo("1) View my manga list")
+        click.echo("2) Add new manga")
+        click.echo("3) Quick increment chapter count for existing manga")
+        click.echo("4) Quick increment volume count for existing manga")
+        click.echo("5) Set chapter count for existing manga")
+        click.echo("6) Set volume count for existing manga")
+        click.echo("7) Set score for existing manga")
+        click.echo("8) Set status for existing manga")
         click.echo("9) Go back to main menu")
 
         choice = click.prompt("Please choose an option", type=int)
 
-        if choice == 9:
+        if choice in range(1, 9):
+            _update_manga_mapping[choice](credentials)
+        elif choice == 9:
             return
-        else:
-            # try/except to handle trying to call options that aren't in function map dictionary
-            try:
-                _update_manga_mapping[choice](credentials)
-            except KeyError:
-                continue
 
 # function mappings for main menu
 _mm_mapping = {
@@ -107,20 +97,22 @@ _mm_mapping = {
 
 # function mappings for update anime menu
 _update_anime_mapping = {
-    1: None,
-    2: update.increment_episode_count,
-    3: None,
+    1: update.view_anime_list,
+    2: None,
+    3: update.increment_episode_count,
     4: None,
-    5: None
+    5: None,
+    6: None
 }
 
 # function mappings for update manga menu
 _update_manga_mapping = {
-    1: None,
-    2: update.increment_chapter_count,
-    3: update.increment_volume_count,
-    4: None,
+    1: update.view_manga_list,
+    2: None,
+    3: update.increment_chapter_count,
+    4: update.increment_volume_count,
     5: None,
     6: None,
     7: None,
+    8: None,
 }
