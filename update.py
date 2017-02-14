@@ -93,7 +93,7 @@ def increment_chapter_volume_count(credentials, field_type):
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            click.echo("Updated \"{}\" to chapter {}".format(manga_title, current_field_count + 1))
+            click.echo("Updated \"{}\" to {} {}".format(manga_title, field_type, current_field_count + 1))
         else:
             click.echo("Error updating manga. Please try again.")
 
