@@ -1,4 +1,4 @@
-anime_status_map = {
+ANIME_STATUS_MAP = {
     "1": "Watching",
     "2": "Completed",
     "3": "On hold",
@@ -6,7 +6,7 @@ anime_status_map = {
     "6": "Plan to watch"
 }
 
-manga_status_map = {
+MANGA_STATUS_MAP = {
     "1": "Reading",
     "2": "Completed",
     "3": "On hold",
@@ -14,7 +14,7 @@ manga_status_map = {
     "6": "Plan to read"
 }
 
-anime_type_map = {
+ANIME_TYPE_MAP = {
     "1": "TV",
     "2": "OVA",
     "3": "Movie",
@@ -23,7 +23,7 @@ anime_type_map = {
     "6": "Music"
 }
 
-manga_type_map = {
+MANGA_TYPE_MAP = {
     "1": "Manga",
     "2": "Novel",
     "3": "One-shot",

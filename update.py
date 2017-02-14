@@ -1,7 +1,7 @@
 import click
 import requests
 from bs4 import BeautifulSoup
-from constants import anime_status_map, anime_type_map, manga_status_map, manga_type_map
+from constants import ANIME_STATUS_MAP, ANIME_TYPE_MAP, MANGA_STATUS_MAP, MANGA_TYPE_MAP
 
 
 def increment_episode_count(credentials):
@@ -216,16 +216,16 @@ def view_list(username, search_type):
         if search_type == "anime":
             click.echo(layout_string.format(
                 i, entry.series_title.get_text(),
-                "Status", anime_status_map[entry.my_status.get_text()],
+                "Status", ANIME_STATUS_MAP[entry.my_status.get_text()],
                 "Score", entry.my_score.get_text(),
-                "Type", anime_type_map[entry.series_type.get_text()],
+                "Type", ANIME_TYPE_MAP[entry.series_type.get_text()],
                 "Progress", entry.my_watched_episodes.get_text() + "/" + entry.series_episodes.get_text()))
         else:
             click.echo(layout_string.format(
                 i, entry.series_title.get_text(),
-                "Status", manga_status_map[entry.my_status.get_text()],
+                "Status", MANGA_STATUS_MAP[entry.my_status.get_text()],
                 "Score", entry.my_score.get_text(),
-                "Type", manga_type_map[entry.series_type.get_text()],
+                "Type", MANGA_TYPE_MAP[entry.series_type.get_text()],
                 "Chapters", entry.my_read_chapters.get_text() + "/" + entry.series_chapters.get_text(),
                 "Volumes", entry.my_read_volumes.get_text() + "/" + entry.series_volumes.get_text()))
 
