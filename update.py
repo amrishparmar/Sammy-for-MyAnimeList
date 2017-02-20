@@ -133,10 +133,10 @@ def search_list(username, search_type):
     search_string = click.prompt("Enter name of {} to update".format(search_type))
 
     # normalise to lowercase for easier searching
-    search_string = search_string.lower()
+    search_lower = search_string.lower()
 
     # store the search string as a list of tokens
-    search_tokens = search_string.split()
+    search_tokens = search_lower.split()
 
     # the base url of the user list xml data
     malappinfo = "https://myanimelist.net/malappinfo.php"
@@ -156,7 +156,7 @@ def search_list(username, search_type):
         series_synonyms_lower = entry.series_synonyms.get_text().lower()
 
         # if the whole search string matches the entry then add it to our list of matches
-        if search_string in series_title_lower or search_string in series_synonyms_lower:
+        if search_lower in series_title_lower or search_lower in series_synonyms_lower:
             matches.append(entry)
             continue
 
@@ -169,7 +169,7 @@ def search_list(username, search_type):
     num_results = len(matches)
 
     if num_results == 0:
-        click.echo("No results found")
+        click.echo("Could not find {} matching \"{} \"on your list".format(search_type, search_string))
         return None
     elif num_results == 1:
         return matches[0], soup
