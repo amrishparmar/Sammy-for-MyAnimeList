@@ -49,16 +49,18 @@ def increment_episode_count(credentials):
     click.pause()
 
 
-def _update_chapter_volume_count(credentials, field_type, result_list, new_count=None):
+def _update_manga_list_entry(credentials, field_type, result_list, new_value=None):
     """Increment the chapter or volume count of a manga on the user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param field_type: A string, must be either "chapter" or "volume"
     """
 
+    valid_field_types = ["chapter", "volume", "status", "score"]
+
     # ensure that the field_type is valid
-    if field_type not in ["chapter", "volume"]:
-        raise ValueError("Invalid argument for {}, must be either {} or {}.".format(field_type, "chapter", "volume"))
+    if field_type not in valid_field_types:
+        raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
     # check the searching the list returned a valid result
     if result_list is not None:
@@ -75,17 +77,18 @@ def _update_chapter_volume_count(credentials, field_type, result_list, new_count
             # check if the current entry is the one we are looking for
             if entry.series_mangadb_id.get_text() == manga_id:
                 # if we are incrementing, not just setting
-                if new_count is None:
+                if new_value is None and field_type in ["chapter", "volume"]:
                     if field_type == "chapter":
-                        current_field_count = int(entry.my_read_chapters.get_text())
+                        current_value = int(entry.my_read_chapters.get_text())
                     else:
-                        current_field_count = int(entry.my_read_volumes.get_text())
-                    new_count = current_field_count + 1
+                        current_value = int(entry.my_read_volumes.get_text())
+                    new_value = current_value + 1
 
                 manga_title = entry.series_title.get_text()
+                break
 
         # prepare xml data for sending to server
-        xml = '<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>'.format(field_type, new_count)
+        xml = '<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>'.format(field_type, new_value)
 
         # send the request to the server, uses GET due to bug in API handling POST requests
         r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml?data={}".format(manga_id, xml),
@@ -93,7 +96,7 @@ def _update_chapter_volume_count(credentials, field_type, result_list, new_count
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            click.echo("Updated \"{}\" to {} {}".format(manga_title, field_type, new_count))
+            click.echo("Updated \"{}\" to {} {}".format(manga_title, field_type, new_value))
         else:
             click.echo("Error updating manga. Please try again.")
 
@@ -108,7 +111,7 @@ def increment_chapter_count(credentials):
 
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
-    _update_chapter_volume_count(credentials, "chapter", result)
+    _update_manga_list_entry(credentials, "chapter", result)
 
 
 def increment_volume_count(credentials):
@@ -118,7 +121,7 @@ def increment_volume_count(credentials):
     """
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
-    _update_chapter_volume_count(credentials, "volume", result)
+    _update_manga_list_entry(credentials, "volume", result)
 
 
 def set_chapter_count(credentials):
@@ -126,7 +129,7 @@ def set_chapter_count(credentials):
     result = search_list(credentials[0], "manga")
 
     chapters = click.prompt("Enter the new chapter count", type=int)
-    _update_chapter_volume_count(credentials, "chapter", result, chapters)
+    _update_manga_list_entry(credentials, "chapter", result, chapters)
 
 
 def set_volume_count(credentials):
@@ -134,7 +137,48 @@ def set_volume_count(credentials):
     result = search_list(credentials[0], "manga")
 
     volumes = click.prompt("Enter the new volume count", type=int)
-    _update_chapter_volume_count(credentials, "volume", result, volumes)
+    _update_manga_list_entry(credentials, "volume", result, volumes)
+
+
+def set_manga_score(credentials):
+    result = search_list(credentials[0], "manga")
+
+    if result is not None:
+        while True:
+            score = click.prompt("Enter the new score", type=int)
+
+            if 0 < score < 11:
+                break
+            else:
+                click.echo("You must enter a value between 1 and 10.")
+
+        _update_manga_list_entry(credentials, "score", result, score)
+    else:
+        click.pause()
+
+
+def set_manga_status(credentials):
+    result = search_list(credentials[0], "manga")
+
+    if result is not None:
+        click.echo("Which of the following statuses do you want to update to?")
+
+        for i in range(1, len(MANGA_STATUS_MAP.keys()) + 1):
+            click.echo("{}> {}".format(i, MANGA_STATUS_MAP[str(i) if i != 5 else str(6)]))
+
+        while True:
+            status = click.prompt("Choose an option", type=int)
+
+            last_option = int(list(MANGA_STATUS_MAP.keys())[-1])
+
+            if 0 < status < last_option:
+                break
+            else:
+                click.echo("You must enter a value between 1 and {}.".format(last_option))
+
+        _update_manga_list_entry(credentials, "status", result, status)
+    else:
+        click.pause()
 
 
 def search_list(username, search_type):
@@ -191,7 +235,7 @@ def search_list(username, search_type):
 
     if num_results == 0:
         click.echo("Could not find {} matching \"{} \"on your list".format(search_type, search_string))
-        return None
+        return
     elif num_results == 1:
         return matches[0], soup
     else:

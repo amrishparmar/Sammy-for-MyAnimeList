@@ -113,6 +113,6 @@ _update_manga_mapping = {
     4: update.increment_volume_count,
     5: update.set_chapter_count,
     6: update.set_volume_count,
-    7: None,
-    8: None,
+    7: update.set_manga_score,
+    8: update.set_manga_status,
 }
