@@ -37,9 +37,14 @@ def search(credentials, search_type):
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 
     click.echo()
+    click.secho("{} search".format(search_type.title()), fg="green")
 
     # get search terms from the user
-    search_string = click.prompt("Enter a search term")
+    search_string = click.prompt("Enter a search term ('q' to cancel)")
+
+    # escape route for users who change their mind
+    if search_string == "q":
+        return
 
     # replace spaces with + chars
     search_query = search_string.replace(" ", "+")
@@ -84,6 +89,8 @@ def search(credentials, search_type):
                     break
                 else:
                     click.echo("You must enter a value between {} and {}".format(1, num_results + 1))
+
+            click.echo()
 
             # check that the user didn't choose the none of these option before trying to display entry
             if option != num_results + 1:
