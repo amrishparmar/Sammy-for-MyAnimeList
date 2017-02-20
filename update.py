@@ -120,7 +120,7 @@ def search_list(username, search_type):
     """Search a user's list for a manga or anime and return the list of matching entries
 
     :param username: A string, the username of a MAL user
-    :param search_type: A string, which
+    :param search_type: A string, must be either "anime" or "manga"
     :return:
     """
 
@@ -198,6 +198,11 @@ def search_list(username, search_type):
 
 
 def view_list(username, search_type):
+    """View the anime and manga list of a user
+
+    :param username: A valid MAL username
+    :param search_type: A string, must be either "anime" or "manga"
+    """
     if search_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 
@@ -212,7 +217,9 @@ def view_list(username, search_type):
 
     i = 1
     for entry in soup.find_all(search_type):
+        # use a different layout depending on whether it is anime or manga
         layout_string = "{}> {}" + ("\n    - {}: {}" * (4 if search_type == "anime" else 5))
+
         if search_type == "anime":
             click.echo(layout_string.format(
                 i, entry.series_title.get_text(),
@@ -235,8 +242,16 @@ def view_list(username, search_type):
 
 
 def view_anime_list(credentials):
+    """View the anime list of a user
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     view_list(credentials[0], "anime")
 
 
 def view_manga_list(credentials):
+    """View the manga list of a user
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     view_list(credentials[0], "manga")
