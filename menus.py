@@ -111,8 +111,8 @@ _update_manga_mapping = {
     2: None,
     3: update.increment_chapter_count,
     4: update.increment_volume_count,
-    5: None,
-    6: None,
+    5: update.set_chapter_count,
+    6: update.set_volume_count,
     7: None,
     8: None,
 }

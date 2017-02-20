@@ -49,7 +49,7 @@ def increment_episode_count(credentials):
     click.pause()
 
 
-def increment_chapter_volume_count(credentials, field_type):
+def _update_chapter_volume_count(credentials, field_type, result_list, new_count=None):
     """Increment the chapter or volume count of a manga on the user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
@@ -60,32 +60,32 @@ def increment_chapter_volume_count(credentials, field_type):
     if field_type not in ["chapter", "volume"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(field_type, "chapter", "volume"))
 
-    # prompt the user to search their list for the entry
-    result = search_list(credentials[0], "manga")
-
     # check the searching the list returned a valid result
-    if result is not None:
+    if result_list is not None:
         # store the data contained in result
-        manga_entry, list_data_xml = result
+        manga_entry, list_data_xml = result_list
 
         # get the id of the manga to update
         manga_id = manga_entry.series_mangadb_id.get_text()
 
-        current_field_count = 0
         manga_title = ""
 
         # iterate over all manga entries
         for entry in list_data_xml.find_all("manga"):
             # check if the current entry is the one we are looking for
             if entry.series_mangadb_id.get_text() == manga_id:
-                # get the current number of chapters or volumes for the manga and the title
-                current_field_count = int(
-                    entry.my_read_chapters.get_text() if field_type == "chapter" else entry.my_read_volumes.get_text())
+                # if we are incrementing, not just setting
+                if new_count is None:
+                    if field_type == "chapter":
+                        current_field_count = int(entry.my_read_chapters.get_text())
+                    else:
+                        current_field_count = int(entry.my_read_volumes.get_text())
+                    new_count = current_field_count + 1
+
                 manga_title = entry.series_title.get_text()
 
         # prepare xml data for sending to server
-        xml = """<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>""".format(field_type,
-                                                                                               current_field_count + 1)
+        xml = '<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>'.format(field_type, new_count)
 
         # send the request to the server, uses GET due to bug in API handling POST requests
         r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml?data={}".format(manga_id, xml),
@@ -93,7 +93,7 @@ def increment_chapter_volume_count(credentials, field_type):
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            click.echo("Updated \"{}\" to {} {}".format(manga_title, field_type, current_field_count + 1))
+            click.echo("Updated \"{}\" to {} {}".format(manga_title, field_type, new_count))
         else:
             click.echo("Error updating manga. Please try again.")
 
@@ -105,7 +105,10 @@ def increment_chapter_count(credentials):
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
-    increment_chapter_volume_count(credentials, "chapter")
+
+    # prompt the user to search their list for the entry
+    result = search_list(credentials[0], "manga")
+    _update_chapter_volume_count(credentials, "chapter", result)
 
 
 def increment_volume_count(credentials):
@@ -113,7 +116,25 @@ def increment_volume_count(credentials):
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
-    increment_chapter_volume_count(credentials, "volume")
+    # prompt the user to search their list for the entry
+    result = search_list(credentials[0], "manga")
+    _update_chapter_volume_count(credentials, "volume", result)
+
+
+def set_chapter_count(credentials):
+    # prompt the user to search their list for the entry
+    result = search_list(credentials[0], "manga")
+
+    chapters = click.prompt("Enter the new chapter count", type=int)
+    _update_chapter_volume_count(credentials, "chapter", result, chapters)
+
+
+def set_volume_count(credentials):
+    # prompt the user to search their list for the entry
+    result = search_list(credentials[0], "manga")
+
+    volumes = click.prompt("Enter the new volume count", type=int)
+    _update_chapter_volume_count(credentials, "volume", result, volumes)
 
 
 def search_list(username, search_type):
