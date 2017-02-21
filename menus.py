@@ -100,9 +100,9 @@ _update_anime_mapping = {
     1: update.view_anime_list,
     2: None,
     3: update.increment_episode_count,
-    4: None,
-    5: None,
-    6: None
+    4: update.set_episode_count,
+    5: update.set_anime_score,
+    6: update.set_anime_status
 }
 
 # function mappings for update manga menu

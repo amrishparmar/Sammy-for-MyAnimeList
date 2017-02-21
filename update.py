@@ -4,37 +4,42 @@ from bs4 import BeautifulSoup
 from constants import ANIME_STATUS_MAP, ANIME_TYPE_MAP, MANGA_STATUS_MAP, MANGA_TYPE_MAP
 
 
-def increment_episode_count(credentials):
+def _update_anime_list_entry(credentials, field_type, result_list, new_value=None):
     """Increment the episode count of an anime on the user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
 
-    # prompt the user to search their list for the entry
-    result = search_list(credentials[0], "anime")
+    valid_field_types = ["episode", "status", "score"]
+
+    # ensure that the field_type is valid
+    if field_type not in valid_field_types:
+        raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
     # check the searching the list returned a valid result
-    if result is not None:
+    if result_list is not None:
         # store the data contained in result
-        anime_entry, list_data_xml = result
+        anime_entry, list_data_xml = result_list
 
         # get the id of the anime to update
         anime_id = anime_entry.series_animedb_id.get_text()
 
-        current_ep_count = 0
         anime_title = ""
 
         # iterate over all anime entries
         for entry in list_data_xml.find_all("anime"):
             # check if the current entry is the one we are looking for
             if entry.series_animedb_id.get_text() == anime_id:
-                # get the current number of episodes watched for the anime and the title
-                current_ep_count = int(entry.my_watched_episodes.get_text())
+                if field_type == "episode" and new_value is None:
+                    # get the current number of episodes watched for the anime and the title
+                    current_ep_count = int(entry.my_watched_episodes.get_text())
+                    new_value = current_ep_count + 1
+
                 anime_title = entry.series_title.get_text()
+                break
 
         # prepare xml data for sending to server
-        xml = """<?xml version="1.0" encoding="UTF-8"?><entry><episode>{}</episode></entry>""".format(
-            current_ep_count + 1)
+        xml = """<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>""".format(field_type, new_value)
 
         # send the request to the server, uses GET due to bug in API handling POST requests
         r = requests.get("https://myanimelist.net/api/animelist/update/{}.xml?data={}".format(anime_id, xml),
@@ -42,11 +47,72 @@ def increment_episode_count(credentials):
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            click.echo("Updated \"{}\" to episode {}".format(anime_title, current_ep_count + 1))
+            click.echo("Updated \"{}\" to {} {}".format(anime_title, field_type, new_value))
         else:
             click.echo("Error updating anime. Please try again.")
 
     click.pause()
+
+
+def increment_episode_count(credentials):
+    # prompt the user to search their list for the entry
+    result = search_list(credentials[0], "anime")
+
+    _update_anime_list_entry(credentials, "episode", result)
+
+
+def set_episode_count(credentials):
+    # prompt the user to search their list for the entry
+    result = search_list(credentials[0], "anime")
+
+    if result is not None:
+        episodes = click.prompt("Enter the new episode count", type=int)
+        _update_anime_list_entry(credentials, "episode", result, episodes)
+    else:
+        click.pause()
+
+
+def set_anime_score(credentials):
+    # prompt the user to search their list for the entry
+    result = search_list(credentials[0], "anime")
+
+    if result is not None:
+        while True:
+            score = click.prompt("Enter the new score", type=int)
+
+            if 0 < score < 11:
+                break
+            else:
+                click.echo("You must enter a value between 1 and 10.")
+
+        _update_anime_list_entry(credentials, "score", result, score)
+    else:
+        click.pause()
+
+
+def set_anime_status(credentials):
+    # prompt the user to search their list for the entry
+    result = search_list(credentials[0], "anime")
+
+    if result is not None:
+        click.echo("Which of the following statuses do you want to update to?")
+
+        for i in range(1, len(ANIME_STATUS_MAP.keys()) + 1):
+            click.echo("{}> {}".format(i, ANIME_STATUS_MAP[str(i) if i != 5 else str(6)]))
+
+        while True:
+            status = click.prompt("Choose an option", type=int)
+
+            last_option = int(list(ANIME_STATUS_MAP.keys())[-1])
+
+            if 0 < status < last_option:
+                break
+            else:
+                click.echo("You must enter a value between 1 and {}.".format(last_option))
+
+        _update_anime_list_entry(credentials, "status", result, status)
+    else:
+        click.pause()
 
 
 def _update_manga_list_entry(credentials, field_type, result_list, new_value=None):
@@ -128,16 +194,22 @@ def set_chapter_count(credentials):
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
 
-    chapters = click.prompt("Enter the new chapter count", type=int)
-    _update_manga_list_entry(credentials, "chapter", result, chapters)
+    if result is not None:
+        chapters = click.prompt("Enter the new chapter count", type=int)
+        _update_manga_list_entry(credentials, "chapter", result, chapters)
+    else:
+        click.pause()
 
 
 def set_volume_count(credentials):
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
 
-    volumes = click.prompt("Enter the new volume count", type=int)
-    _update_manga_list_entry(credentials, "volume", result, volumes)
+    if result is not None:
+        volumes = click.prompt("Enter the new volume count", type=int)
+        _update_manga_list_entry(credentials, "volume", result, volumes)
+    else:
+        click.pause()
 
 
 def set_manga_score(credentials):
@@ -203,11 +275,8 @@ def search_list(username, search_type):
     # store the search string as a list of tokens
     search_tokens = search_lower.split()
 
-    # the base url of the user list xml data
-    malappinfo = "https://myanimelist.net/malappinfo.php"
-
     # make the request to the server and get the results
-    r = requests.get(malappinfo, params={"u": username, "type": search_type}, stream=True)
+    r = requests.get("https://myanimelist.net/malappinfo.php", params={"u": username, "type": search_type}, stream=True)
     r.raw.decode_content = True
 
     soup = BeautifulSoup(r.raw, "xml")
@@ -234,7 +303,7 @@ def search_list(username, search_type):
     num_results = len(matches)
 
     if num_results == 0:
-        click.echo("Could not find {} matching \"{} \"on your list".format(search_type, search_string))
+        click.echo("Could not find {} matching \"{}\" on your list".format(search_type, search_string))
         return
     elif num_results == 1:
         return matches[0], soup
