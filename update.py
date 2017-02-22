@@ -4,7 +4,7 @@ from bs4 import BeautifulSoup
 from constants import ANIME_STATUS_MAP, ANIME_TYPE_MAP, MANGA_STATUS_MAP, MANGA_TYPE_MAP
 
 
-def _update_anime_list_entry(credentials, field_type, result_list, new_value=None):
+def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=None):
     """Increment the episode count of an anime on the user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
@@ -17,26 +17,16 @@ def _update_anime_list_entry(credentials, field_type, result_list, new_value=Non
         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
     # check the searching the list returned a valid result
-    if result_list is not None:
-        # store the data contained in result
-        anime_entry, list_data_xml = result_list
+    if anime_entry is not None:
 
         # get the id of the anime to update
         anime_id = anime_entry.series_animedb_id.get_text()
+        anime_title = anime_entry.series_title.get_text()
 
-        anime_title = ""
-
-        # iterate over all anime entries
-        for entry in list_data_xml.find_all("anime"):
-            # check if the current entry is the one we are looking for
-            if entry.series_animedb_id.get_text() == anime_id:
-                if field_type == "episode" and new_value is None:
-                    # get the current number of episodes watched for the anime and the title
-                    current_ep_count = int(entry.my_watched_episodes.get_text())
-                    new_value = current_ep_count + 1
-
-                anime_title = entry.series_title.get_text()
-                break
+        if field_type == "episode" and new_value is None:
+            # get the current number of episodes watched for the anime and the title
+            current_ep_count = int(anime_entry.my_watched_episodes.get_text())
+            new_value = current_ep_count + 1
 
         # prepare xml data for sending to server
         xml = """<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>""".format(field_type, new_value)
@@ -115,7 +105,7 @@ def set_anime_status(credentials):
         click.pause()
 
 
-def _update_manga_list_entry(credentials, field_type, result_list, new_value=None):
+def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=None):
     """Increment the chapter or volume count of a manga on the user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
@@ -129,29 +119,17 @@ def _update_manga_list_entry(credentials, field_type, result_list, new_value=Non
         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
     # check the searching the list returned a valid result
-    if result_list is not None:
-        # store the data contained in result
-        manga_entry, list_data_xml = result_list
-
+    if manga_entry is not None:
         # get the id of the manga to update
         manga_id = manga_entry.series_mangadb_id.get_text()
+        manga_title = manga_entry.series_title.get_text()
 
-        manga_title = ""
-
-        # iterate over all manga entries
-        for entry in list_data_xml.find_all("manga"):
-            # check if the current entry is the one we are looking for
-            if entry.series_mangadb_id.get_text() == manga_id:
-                # if we are incrementing, not just setting
-                if new_value is None and field_type in ["chapter", "volume"]:
-                    if field_type == "chapter":
-                        current_value = int(entry.my_read_chapters.get_text())
-                    else:
-                        current_value = int(entry.my_read_volumes.get_text())
-                    new_value = current_value + 1
-
-                manga_title = entry.series_title.get_text()
-                break
+        if new_value is None and field_type in ["chapter", "volume"]:
+            if field_type == "chapter":
+                current_value = int(manga_entry.my_read_chapters.get_text())
+            else:
+                current_value = int(manga_entry.my_read_volumes.get_text())
+            new_value = current_value + 1
 
         # prepare xml data for sending to server
         xml = '<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>'.format(field_type, new_value)
@@ -185,6 +163,7 @@ def increment_volume_count(credentials):
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
+
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
     _update_manga_list_entry(credentials, "volume", result)
@@ -306,7 +285,7 @@ def search_list(username, search_type):
         click.echo("Could not find {} matching \"{}\" on your list".format(search_type, search_string))
         return
     elif num_results == 1:
-        return matches[0], soup
+        return matches[0]
     else:
         click.echo("We found {} results. Did you mean:".format(num_results))
 
@@ -328,7 +307,7 @@ def search_list(username, search_type):
 
         # check that the user didn't choose the none of these option before returning the match
         if option != num_results + 1:
-            return matches[option - 1], soup
+            return matches[option - 1]
 
 
 def view_list(username, search_type):
@@ -337,6 +316,7 @@ def view_list(username, search_type):
     :param username: A valid MAL username
     :param search_type: A string, must be either "anime" or "manga"
     """
+
     if search_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 
@@ -380,6 +360,7 @@ def view_anime_list(credentials):
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
+
     view_list(credentials[0], "anime")
 
 
@@ -388,4 +369,5 @@ def view_manga_list(credentials):
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
+
     view_list(credentials[0], "manga")
