@@ -5,24 +5,28 @@ from constants import ANIME_STATUS_MAP, ANIME_TYPE_MAP, MANGA_STATUS_MAP, MANGA_
 
 
 def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=None):
-    """Increment the episode count of an anime on the user's list
+    """Update the details of a users anime list entry
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :param field_type: A string, the detail to update, must be either "episode", "status" or "score"
+    :param anime_entry: A beautiful soup tag, the entry on the list to update
+    :param new_value: An int (or string) or None, the new value to set for the field_type
     """
 
+    # the valid types of fields to update
     valid_field_types = ["episode", "status", "score"]
 
     # ensure that the field_type is valid
     if field_type not in valid_field_types:
         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
-    # check the searching the list returned a valid result
+    # check that the anime_entry is valid
     if anime_entry is not None:
-
         # get the id of the anime to update
         anime_id = anime_entry.series_animedb_id.get_text()
         anime_title = anime_entry.series_title.get_text()
 
+        # if we are incrementing the episode count for an anime
         if field_type == "episode" and new_value is None:
             # get the current number of episodes watched for the anime and the title
             current_ep_count = int(anime_entry.my_watched_episodes.get_text())
@@ -45,6 +49,10 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
 
 
 def increment_episode_count(credentials):
+    """Search for and increment the episode count by 1 for an anime on user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "anime")
 
@@ -52,9 +60,14 @@ def increment_episode_count(credentials):
 
 
 def set_episode_count(credentials):
+    """Search for and set the episode count for an anime on user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "anime")
 
+    # check that the search returned a valid result
     if result is not None:
         episodes = click.prompt("Enter the new episode count", type=int)
         _update_anime_list_entry(credentials, "episode", result, episodes)
@@ -63,13 +76,20 @@ def set_episode_count(credentials):
 
 
 def set_anime_score(credentials):
+    """Search for and set the score for an anime on user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "anime")
 
+    # check that the search returned a valid result
     if result is not None:
+        # get a valid choice from the user
         while True:
             score = click.prompt("Enter the new score", type=int)
 
+            # ensure that the score is an int between 1 and 10 (inclusive)
             if 0 < score < 11:
                 break
             else:
@@ -81,18 +101,26 @@ def set_anime_score(credentials):
 
 
 def set_anime_status(credentials):
+    """Search for and set the status for an anime on user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "anime")
 
+    # check that the search returned a valid result
     if result is not None:
         click.echo("Which of the following statuses do you want to update to?")
 
+        # print out the list of valid statuses
         for i in range(1, len(ANIME_STATUS_MAP.keys()) + 1):
             click.echo("{}> {}".format(i, ANIME_STATUS_MAP[str(i) if i != 5 else str(6)]))
 
+        # get a valid choice from the user
         while True:
             status = click.prompt("Choose an option", type=int)
 
+            # get the number corresponding to the last option
             last_option = int(list(ANIME_STATUS_MAP.keys())[-1])
 
             if 0 < status < last_option:
@@ -109,7 +137,9 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
     """Increment the chapter or volume count of a manga on the user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    :param field_type: A string, must be either "chapter" or "volume"
+    :param field_type: A string, the detail to update, must be either "chapter", "volume", "status" or "score"
+    :param manga_entry: A beautiful soup tag, the entry on the list to update
+    :param new_value: An int (or string) or None, the new value to set for the field_type
     """
 
     valid_field_types = ["chapter", "volume", "status", "score"]
@@ -124,6 +154,7 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
         manga_id = manga_entry.series_mangadb_id.get_text()
         manga_title = manga_entry.series_title.get_text()
 
+        # if we are incrementing the chapter or volume count for a manga
         if new_value is None and field_type in ["chapter", "volume"]:
             if field_type == "chapter":
                 current_value = int(manga_entry.my_read_chapters.get_text())
@@ -148,7 +179,7 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
 
 
 def increment_chapter_count(credentials):
-    """Increment the chapter count of a manga on the user's list
+    """Search for and increment the chapter count by 1 for a manga on user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
@@ -159,7 +190,7 @@ def increment_chapter_count(credentials):
 
 
 def increment_volume_count(credentials):
-    """Increment the volume count of a manga on the user's list
+    """Search for and increment the volume count by 1 for a manga on user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     """
@@ -170,9 +201,14 @@ def increment_volume_count(credentials):
 
 
 def set_chapter_count(credentials):
+    """Search for and set the chapter count for a manga on user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
 
+    # check that the search returned a valid result
     if result is not None:
         chapters = click.prompt("Enter the new chapter count", type=int)
         _update_manga_list_entry(credentials, "chapter", result, chapters)
@@ -181,9 +217,14 @@ def set_chapter_count(credentials):
 
 
 def set_volume_count(credentials):
+    """Search for and set the volume count for a manga on user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
 
+    # check that the search returned a valid result
     if result is not None:
         volumes = click.prompt("Enter the new volume count", type=int)
         _update_manga_list_entry(credentials, "volume", result, volumes)
@@ -192,12 +233,19 @@ def set_volume_count(credentials):
 
 
 def set_manga_score(credentials):
+    """Search for and set the score for a manga on user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
     result = search_list(credentials[0], "manga")
 
+    # check that the search returned a valid result
     if result is not None:
+        # get a valid choice from the user
         while True:
             score = click.prompt("Enter the new score", type=int)
 
+            # ensure that the score is an int between 1 and 10 (inclusive)
             if 0 < score < 11:
                 break
             else:
@@ -209,17 +257,26 @@ def set_manga_score(credentials):
 
 
 def set_manga_status(credentials):
+    """Search for and set the status for a manga on user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    """
+
     result = search_list(credentials[0], "manga")
 
+    # check that the search returned a valid result
     if result is not None:
         click.echo("Which of the following statuses do you want to update to?")
 
+        # print out the list of valid statuses
         for i in range(1, len(MANGA_STATUS_MAP.keys()) + 1):
             click.echo("{}> {}".format(i, MANGA_STATUS_MAP[str(i) if i != 5 else str(6)]))
 
+        # get a valid choice from the user
         while True:
             status = click.prompt("Choose an option", type=int)
 
+            # get the number corresponding to the last option
             last_option = int(list(MANGA_STATUS_MAP.keys())[-1])
 
             if 0 < status < last_option:
@@ -233,11 +290,11 @@ def set_manga_status(credentials):
 
 
 def search_list(username, search_type):
-    """Search a user's list for a manga or anime and return the list of matching entries
+    """Search a user's list for a manga or anime and return the matching entry
 
     :param username: A string, the username of a MAL user
     :param search_type: A string, must be either "anime" or "manga"
-    :return:
+    :return: A beautiful soup tag or None if unsuccessful
     """
 
     if search_type not in ["anime", "manga"]:
