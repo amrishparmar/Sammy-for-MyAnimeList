@@ -20,8 +20,8 @@ def display_entry_details(entry):
 
             # check that the string contains something
             if detail_string is not None:
-                # unescape html entities and convert break tags to newlines
-                detail_string = html.unescape(detail_string).replace("<br />", "\n")
+                # unescape html entities and remove break tags
+                detail_string = html.unescape(detail_string).replace("<br />", "")
 
             click.echo("{}: {}".format(detail_name, detail_string))
 
