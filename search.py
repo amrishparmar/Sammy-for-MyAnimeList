@@ -27,7 +27,7 @@ def display_entry_details(entry):
 
 
 def search(credentials, search_type):
-    """Search for an anime or manga entry and print out the results
+    """Search for an anime or manga entry and return it
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param search_type: A string denoting the media type to search for, should be either "anime" or "manga"
@@ -70,7 +70,7 @@ def search(credentials, search_type):
             # shouldn't ever get to here as no results should yield a 204 error, but leave check for now
             click.echo("No results found for query \"{}\"".format(search_string))
         elif num_results == 1:
-            display_entry_details(matches[0])
+            return matches[0]
         else:
             click.echo("We found {} results. Did you mean:".format(num_results))
 
@@ -94,7 +94,7 @@ def search(credentials, search_type):
 
             # check that the user didn't choose the none of these option before trying to display entry
             if option != num_results + 1:
-                display_entry_details(matches[option - 1])
+                return matches[option - 1]
 
     # await a keypress before continuing so that it doesn't go straight back to menu
     click.pause()
@@ -104,13 +104,25 @@ def anime_search(credentials):
     """Search for an anime and print out the results
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :return:
     """
-    search(credentials, "anime")
+
+    result = search(credentials, "anime")
+
+    if result is not None:
+        display_entry_details(result)
+        click.pause()
 
 
 def manga_search(credentials):
     """Search for a manga and print out the results
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :return:
     """
-    search(credentials, "manga")
+
+    result = search(credentials, "manga")
+
+    if result is not None:
+        display_entry_details(result)
+        click.pause()
