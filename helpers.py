@@ -34,10 +34,22 @@ def get_status_choice_from_user(media_type, none_option=None):
 
 def get_score_choice_from_user():
     while True:
-        score = click.prompt("Enter the new score", type=int)
+        score = click.prompt("Enter the new score (Enter 0 to cancel)", type=int)
 
         # ensure that the score is an int between 1 and 10 (inclusive)
         if 0 < score < 11:
             return score
+        elif score == 0:
+            return
         else:
             click.echo("You must enter a value between 1 and 10.")
+
+
+def get_new_count_from_user(field_type):
+    while True:
+        count = click.prompt("Enter the new {} count".format(field_type), type=int)
+
+        if count >= 0:
+            return count
+
+        click.echo("You must enter a value greater than or equal to zero.")

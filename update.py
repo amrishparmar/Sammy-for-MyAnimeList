@@ -70,7 +70,7 @@ def set_episode_count(credentials):
 
     # check that the search returned a valid result
     if result is not None:
-        episodes = click.prompt("Enter the new episode count", type=int)
+        episodes = helpers.get_new_count_from_user("episode")
         _update_anime_list_entry(credentials, "episode", result, episodes)
     else:
         click.pause()
@@ -86,19 +86,12 @@ def set_anime_score(credentials):
 
     # check that the search returned a valid result
     if result is not None:
-        # get a valid choice from the user
-        while True:
-            score = click.prompt("Enter the new score", type=int)
+        score = helpers.get_score_choice_from_user()
+        if score is not None:
+            _update_anime_list_entry(credentials, "score", result, score)
+            return
 
-            # ensure that the score is an int between 1 and 10 (inclusive)
-            if 0 < score < 11:
-                break
-            else:
-                click.echo("You must enter a value between 1 and 10.")
-
-        _update_anime_list_entry(credentials, "score", result, score)
-    else:
-        click.pause()
+    click.pause()
 
 
 def set_anime_status(credentials):
@@ -195,7 +188,7 @@ def set_chapter_count(credentials):
 
     # check that the search returned a valid result
     if result is not None:
-        chapters = click.prompt("Enter the new chapter count", type=int)
+        chapters = helpers.get_new_count_from_user("chapter")
         _update_manga_list_entry(credentials, "chapter", result, chapters)
     else:
         click.pause()
@@ -211,7 +204,7 @@ def set_volume_count(credentials):
 
     # check that the search returned a valid result
     if result is not None:
-        volumes = click.prompt("Enter the new volume count", type=int)
+        volumes = helpers.get_new_count_from_user("volume")
         _update_manga_list_entry(credentials, "volume", result, volumes)
     else:
         click.pause()
@@ -226,19 +219,12 @@ def set_manga_score(credentials):
 
     # check that the search returned a valid result
     if result is not None:
-        # get a valid choice from the user
-        while True:
-            score = click.prompt("Enter the new score", type=int)
+        score = helpers.get_score_choice_from_user()
+        if score is not None:
+            _update_manga_list_entry(credentials, "score", result, score)
+            return
 
-            # ensure that the score is an int between 1 and 10 (inclusive)
-            if 0 < score < 11:
-                break
-            else:
-                click.echo("You must enter a value between 1 and 10.")
-
-        _update_manga_list_entry(credentials, "score", result, score)
-    else:
-        click.pause()
+    click.pause()
 
 
 def set_manga_status(credentials):
