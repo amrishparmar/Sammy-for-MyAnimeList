@@ -36,13 +36,15 @@ class TestGetStatusChoice(unittest.TestCase):
 
 class TestGetScoreChoice(unittest.TestCase):
     def test_valid_cases(self):
-        for i in range(0, 11):
+        for i in range(-1, 11):
+            if i == 0:
+                continue
             with mock.patch("click.prompt", return_value=i):
                 with mock.patch("click.echo"):
-                    self.assertEqual(helpers.get_score_choice_from_user(), None if i == 0 else i)
+                    self.assertEqual(helpers.get_score_choice_from_user(), None if i == -1 else i)
 
     def test_invalid_cases(self):
-        for i in [-12123, -1, 11, 2102]:
+        for i in [-12123, 0, 11, 2102]:
             with mock.patch('click.prompt', side_effect=[i, 1]):
                 out = StringIO()
                 sys.stdout = out
@@ -60,7 +62,7 @@ class TestGetNewCount(unittest.TestCase):
                     self.assertEqual(helpers.get_new_count_from_user("test"), i)
 
     def test_invalid_cases(self):
-        for i in [-12123, -2323, -2, -1]:
+        for i in [-12123, -2323, -2]:
             with mock.patch('click.prompt', side_effect=[i, 1]):
                 out = StringIO()
                 sys.stdout = out

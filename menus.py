@@ -1,6 +1,7 @@
 import click
 import search
 import update
+import add
 
 
 def menu_heading(username, submenu=None):
@@ -98,7 +99,7 @@ _mm_mapping = {
 # function mappings for update anime menu
 _update_anime_mapping = {
     1: update.view_anime_list,
-    2: None,
+    2: add.add_anime_entry,
     3: update.increment_episode_count,
     4: update.set_episode_count,
     5: update.set_anime_score,
@@ -108,7 +109,7 @@ _update_anime_mapping = {
 # function mappings for update manga menu
 _update_manga_mapping = {
     1: update.view_manga_list,
-    2: None,
+    2: add.add_manga_entry,
     3: update.increment_chapter_count,
     4: update.increment_volume_count,
     5: update.set_chapter_count,
