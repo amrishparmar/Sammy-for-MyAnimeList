@@ -22,8 +22,7 @@ class TestGetStatusChoice(unittest.TestCase):
                 helpers.get_status_choice_from_user("anime")
                 output = out.getvalue().strip()
                 expected = "You must enter a value between 1 and 6."
-                self.assertEqual(output[-len(expected):], expected,
-                                 "\n\nFailure on input value " + str(i))
+                self.assertEqual(output[-len(expected):], expected, "\n\nFailure on input value " + str(i))
 
         for i in [-12123, -1, 0, 7, 2102]:
             with mock.patch('click.prompt', side_effect=[i, 1]):
@@ -32,8 +31,7 @@ class TestGetStatusChoice(unittest.TestCase):
                 helpers.get_status_choice_from_user("manga")
                 output = out.getvalue().strip()
                 expected = "You must enter a value between 1 and 6."
-                self.assertEqual(output[-len(expected):], expected,
-                                 "\n\nFailure on input value " + str(i))
+                self.assertEqual(output[-len(expected):], expected, "\n\nFailure on input value " + str(i))
 
 
 class TestGetScoreChoice(unittest.TestCase):
@@ -44,15 +42,14 @@ class TestGetScoreChoice(unittest.TestCase):
                     self.assertEqual(helpers.get_score_choice_from_user(), i)
 
     def test_invalid_cases(self):
-        for i in [-12123, -1, 0, 7, 2102]:
+        for i in [-12123, -1, 0, 11, 2102]:
             with mock.patch('click.prompt', side_effect=[i, 1]):
                 out = StringIO()
                 sys.stdout = out
-                helpers.get_status_choice_from_user("manga")
+                helpers.get_score_choice_from_user()
                 output = out.getvalue().strip()
                 expected = "You must enter a value between 1 and 10."
-                self.assertEqual(output[-len(expected):], "You must enter a value between 1 and 6.",
-                                 "\n\nFailure on input value " + str(i))
+                self.assertEqual(output[-len(expected):], expected, "\n\nFailure on input value {}".format(i))
 
 
 if __name__ == '__main__':
