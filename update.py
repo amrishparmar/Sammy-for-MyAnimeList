@@ -114,17 +114,23 @@ def set_anime_status(credentials):
 
         # print out the list of valid statuses
         for i in range(1, len(ANIME_STATUS_MAP.keys()) + 1):
-            click.echo("{}> {}".format(i, ANIME_STATUS_MAP[str(i) if i != 5 else str(6)]))
+            click.echo("{}> {}".format(i, ANIME_STATUS_MAP[str(i) if i != 5 else "6"]))
+
+        # get the number corresponding to the last option
+        last_option = int(list(ANIME_STATUS_MAP.keys())[-1])
+
+        click.echo("{}> [Cancel]".format(last_option))
 
         # get a valid choice from the user
         while True:
             status = click.prompt("Choose an option", type=int)
 
-            # get the number corresponding to the last option
-            last_option = int(list(ANIME_STATUS_MAP.keys())[-1])
-
             if 0 < status < last_option:
                 break
+            # if user chose to cancel
+            elif status == last_option:
+                click.pause()
+                return
             else:
                 click.echo("You must enter a value between 1 and {}.".format(last_option))
 
@@ -270,17 +276,23 @@ def set_manga_status(credentials):
 
         # print out the list of valid statuses
         for i in range(1, len(MANGA_STATUS_MAP.keys()) + 1):
-            click.echo("{}> {}".format(i, MANGA_STATUS_MAP[str(i) if i != 5 else str(6)]))
+            click.echo("{}> {}".format(i, MANGA_STATUS_MAP[str(i) if i != 5 else "6"]))
+
+        # get the number corresponding to the last option
+        last_option = int(list(MANGA_STATUS_MAP.keys())[-1])
+
+        click.echo("{}> [Cancel]".format(last_option))
 
         # get a valid choice from the user
         while True:
             status = click.prompt("Choose an option", type=int)
 
-            # get the number corresponding to the last option
-            last_option = int(list(MANGA_STATUS_MAP.keys())[-1])
-
             if 0 < status < last_option:
                 break
+            # if user chose to cancel
+            elif status == last_option:
+                click.pause()
+                return
             else:
                 click.echo("You must enter a value between 1 and {}.".format(last_option))
 
