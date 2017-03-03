@@ -2,6 +2,7 @@ import click
 import requests
 from bs4 import BeautifulSoup
 from constants import ANIME_STATUS_MAP, ANIME_TYPE_MAP, MANGA_STATUS_MAP, MANGA_TYPE_MAP
+import helpers
 
 
 def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=None):
@@ -110,29 +111,7 @@ def set_anime_status(credentials):
 
     # check that the search returned a valid result
     if result is not None:
-        click.echo("Which of the following statuses do you want to update to?")
-
-        # print out the list of valid statuses
-        for i in range(1, len(ANIME_STATUS_MAP.keys()) + 1):
-            click.echo("{}> {}".format(i, ANIME_STATUS_MAP[str(i) if i != 5 else "6"]))
-
-        # get the number corresponding to the last option
-        last_option = int(list(ANIME_STATUS_MAP.keys())[-1])
-
-        click.echo("{}> [Cancel]".format(last_option))
-
-        # get a valid choice from the user
-        while True:
-            status = click.prompt("Choose an option", type=int)
-
-            if 0 < status < last_option:
-                break
-            # if user chose to cancel
-            elif status == last_option:
-                click.pause()
-                return
-            else:
-                click.echo("You must enter a value between 1 and {}.".format(last_option))
+        status = helpers.get_status_choice_from_user("anime")
 
         _update_anime_list_entry(credentials, "status", result, status)
     else:
@@ -272,29 +251,7 @@ def set_manga_status(credentials):
 
     # check that the search returned a valid result
     if result is not None:
-        click.echo("Which of the following statuses do you want to update to?")
-
-        # print out the list of valid statuses
-        for i in range(1, len(MANGA_STATUS_MAP.keys()) + 1):
-            click.echo("{}> {}".format(i, MANGA_STATUS_MAP[str(i) if i != 5 else "6"]))
-
-        # get the number corresponding to the last option
-        last_option = int(list(MANGA_STATUS_MAP.keys())[-1])
-
-        click.echo("{}> [Cancel]".format(last_option))
-
-        # get a valid choice from the user
-        while True:
-            status = click.prompt("Choose an option", type=int)
-
-            if 0 < status < last_option:
-                break
-            # if user chose to cancel
-            elif status == last_option:
-                click.pause()
-                return
-            else:
-                click.echo("You must enter a value between 1 and {}.".format(last_option))
+        status = helpers.get_status_choice_from_user("manga")
 
         _update_manga_list_entry(credentials, "status", result, status)
     else:
