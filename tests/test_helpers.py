@@ -55,6 +55,17 @@ class TestGetScoreChoice(unittest.TestCase):
 
 
 class TestGetNewCount(unittest.TestCase):
+    def test_zero_limit(self):
+        expected = 10
+        with mock.patch("click.prompt", return_value=expected):
+            with mock.patch("click.echo"):
+                self.assertEqual(helpers.get_new_count_from_user("test", 0), expected)
+
+    def test_user_cancel(self):
+        with mock.patch("click.prompt", return_value=-1):
+            with mock.patch("click.echo"):
+                self.assertEqual(helpers.get_new_count_from_user("test"), None)
+
     def test_valid_cases(self):
         for i in range(0, 10):
             with mock.patch("click.prompt", return_value=i):
@@ -66,10 +77,11 @@ class TestGetNewCount(unittest.TestCase):
             with mock.patch('click.prompt', side_effect=[i, 1]):
                 out = StringIO()
                 sys.stdout = out
-                helpers.get_new_count_from_user("test")
+                helpers.get_new_count_from_user("test", 10)
                 output = out.getvalue().strip()
-                expected = "You must enter a value greater than or equal to zero."
+                expected = "You must enter a value between 0 and {}.".format(10)
                 self.assertEqual(output[-len(expected):], expected, "\n\nFailure on input value {}".format(i))
+
 
 if __name__ == '__main__':
     unittest.main()

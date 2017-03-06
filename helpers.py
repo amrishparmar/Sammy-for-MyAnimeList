@@ -45,13 +45,18 @@ def get_score_choice_from_user():
             click.echo("You must enter a value between 1 and 10.")
 
 
-def get_new_count_from_user(field_type):
+def get_new_count_from_user(field_type, limit=0):
+    if limit < 0:
+        raise ValueError("Limit must be greater than or equal to 0")
+
     while True:
         count = click.prompt("Enter the new {} count (Enter -1 to cancel)".format(field_type), type=int)
 
-        if count >= 0:
+        if 0 <= count <= limit:
             return count
         elif count == -1:
             return
+        elif limit == 0:
+            return count
 
-        click.echo("You must enter a value greater than or equal to zero.")
+        click.echo("You must enter a value between 0 and {}.".format(limit))
