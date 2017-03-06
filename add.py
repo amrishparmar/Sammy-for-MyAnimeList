@@ -1,9 +1,7 @@
 import click
 import requests
-from bs4 import BeautifulSoup
 import search
 import helpers
-from constants import ANIME_STATUS_MAP, MANGA_STATUS_MAP
 
 
 def add_entry(credentials, entry_type, entry=None):

@@ -46,13 +46,9 @@ def search(credentials, search_type):
     if search_string == "q":
         return
 
-    # replace spaces with + chars
-    search_query = search_string.replace(" ", "+")
-
-    # prepare the query string
-    query_string = "https://myanimelist.net/api/{}/search.xml?q={}".format(search_type, search_query)
     # get the results
-    r = requests.get(query_string, auth=credentials, stream=True)
+    r = requests.get("https://myanimelist.net/api/{}/search.xml".format(search_type),
+                     params={"q": search_string.replace(" ", "+")}, auth=credentials, stream=True)
 
     if r.status_code == 204:
         click.echo("No results found for query \"{}\"".format(search_string))
@@ -63,13 +59,11 @@ def search(credentials, search_type):
 
         # get all entries
         matches = soup.find_all("entry")
+
         # store the length of all_matched list since needed multiple times
         num_results = len(matches)
 
-        if num_results == 0:
-            # shouldn't ever get to here as no results should yield a 204 error, but leave check for now
-            click.echo("No results found for query \"{}\"".format(search_string))
-        elif num_results == 1:
+        if num_results == 1:
             return matches[0]
         else:
             click.echo("We found {} results. Did you mean:".format(num_results))
