@@ -30,12 +30,12 @@ def add_entry(credentials, entry_type, entry=None):
         xml_field_tags += xml_tag_format.format("status", status)
 
         if entry_type == "anime":
-            episodes = helpers.get_new_count_from_user("episode")
+            episodes = helpers.get_new_count_from_user("episode", int(entry.episodes.get_text()))
             if episodes is not None:
                 xml_field_tags += xml_tag_format.format("episode", episodes)
         else:
-            chapters = helpers.get_new_count_from_user("chapter")
-            volumes = helpers.get_new_count_from_user("volume")
+            chapters = helpers.get_new_count_from_user("chapter", int(entry.chapters.get_text()))
+            volumes = helpers.get_new_count_from_user("volume", int(entry.volumes.get_text()))
 
             if chapters is not None:
                 xml_field_tags += xml_tag_format.format("chapter", chapters)
@@ -56,8 +56,7 @@ def add_entry(credentials, entry_type, entry=None):
     if r.status_code == 201:
         click.echo("Added \"{}\" to your {}list".format(entry.title.get_text(), entry_type))
     else:
-        click.echo(r.text)
-        click.echo("Error adding anime. Please try again.")
+        click.echo("Error adding {}. {}.".format(entry_type, r.text))
 
     click.pause()
 

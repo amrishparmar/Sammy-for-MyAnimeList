@@ -82,6 +82,16 @@ class TestGetNewCount(unittest.TestCase):
                 expected = "You must enter a value between 0 and {}.".format(10)
                 self.assertEqual(output[-len(expected):], expected, "\n\nFailure on input value {}".format(i))
 
+    def test_invalid_cases_with_zero_limit(self):
+        for i in [-12123, -2323, -2]:
+            with mock.patch('click.prompt', side_effect=[i, 1]):
+                out = StringIO()
+                sys.stdout = out
+                helpers.get_new_count_from_user("test")
+                output = out.getvalue().strip()
+                expected = "You must enter a value greater than or equal to 0."
+                self.assertEqual(output[-len(expected):], expected, "\n\nFailure on input value {}".format(i))
+
 
 if __name__ == '__main__':
     unittest.main()

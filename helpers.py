@@ -52,11 +52,13 @@ def get_new_count_from_user(field_type, limit=0):
     while True:
         count = click.prompt("Enter the new {} count (Enter -1 to cancel)".format(field_type), type=int)
 
-        if 0 <= count <= limit:
-            return count
+        if 0 <= count:
+            if limit == 0 or count <= limit:
+                return count
         elif count == -1:
             return
-        elif limit == 0:
-            return count
 
-        click.echo("You must enter a value between 0 and {}.".format(limit))
+        if limit != 0:
+            click.echo("You must enter a value between 0 and {}.".format(limit))
+        else:
+            click.echo("You must enter a value greater than or equal to 0.")
