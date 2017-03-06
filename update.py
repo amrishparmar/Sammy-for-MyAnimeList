@@ -27,22 +27,49 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
         anime_id = anime_entry.series_animedb_id.get_text()
         anime_title = anime_entry.series_title.get_text()
 
+        xml_tag_format = "<{0}>{1}</{0}>"
+        xml_field_tags = ""
+
+        new_status = "0"
+
         # if we are incrementing the episode count for an anime
-        if field_type == "episode" and new_value is None:
-            # get the current number of episodes watched for the anime and the title
-            current_ep_count = int(anime_entry.my_watched_episodes.get_text())
-            new_value = current_ep_count + 1
+        if field_type == "episode":
+            if new_value is None:
+                # get the current number of episodes watched for the anime and the title
+                current_ep_count = int(anime_entry.my_watched_episodes.get_text())
+                new_value = current_ep_count + 1
+
+            if new_value == int(anime_entry.series_episodes.get_text()):
+                click.echo("Episode {} is the last in the series.".format(new_value))
+                if click.confirm("Do you wish to change the status to completed?"):
+                    xml_field_tags += xml_tag_format.format("status", "2")
+                    new_status = "2"
+            elif anime_entry.my_status.get_text() != "1":
+                if click.confirm("Do you wish to change the status to watching?"):
+                    xml_field_tags += xml_tag_format.format("status", "1")
+                    new_status = "1"
+
+        xml_field_tags += xml_tag_format.format(field_type, new_value)
 
         # prepare xml data for sending to server
-        xml = """<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>""".format(field_type, new_value)
+        xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
 
         # send the request to the server, uses GET due to bug in API handling POST requests
-        r = requests.get("https://myanimelist.net/api/animelist/update/{}.xml?data={}".format(anime_id, xml),
+        r = requests.get("https://myanimelist.net/api/animelist/update/{}.xml".format(anime_id), params={"data": xml},
                          auth=credentials)
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            click.echo("Updated \"{}\" to {} {}".format(anime_title, field_type, new_value))
+            updated_msg_format = "Updated \"{}\" to {} {}."
+
+            updated_msg = updated_msg_format.format(anime_title, field_type, new_value)
+
+            if field_type == "status":
+                updated_msg = updated_msg_format.format(anime_title, field_type, ANIME_STATUS_MAP[str(new_value)])
+            elif new_status != "0":
+                updated_msg += " Status set to \"{}\"".format(ANIME_STATUS_MAP[new_status])
+
+            click.echo(updated_msg)
         else:
             click.echo("Error updating anime. Please try again.")
 
