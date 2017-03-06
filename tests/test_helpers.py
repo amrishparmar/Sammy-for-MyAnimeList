@@ -11,8 +11,9 @@ class TestGetStatusChoice(unittest.TestCase):
         for i in range(1, 7):
             with mock.patch('click.prompt', return_value=i):
                 with mock.patch('click.echo'):
-                    self.assertEqual(helpers.get_status_choice_from_user("anime"), None if i == 6 else i)
-                    self.assertEqual(helpers.get_status_choice_from_user("manga"), None if i == 6 else i)
+                    expected = None if i == 6 else 6 if i == 5 else i
+                    self.assertEqual(helpers.get_status_choice_from_user("anime"), expected)
+                    self.assertEqual(helpers.get_status_choice_from_user("manga"), expected)
 
     def test_invalid_cases(self):
         for i in [-12123, -1, 0, 7, 2102]:

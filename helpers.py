@@ -24,7 +24,7 @@ def get_status_choice_from_user(media_type, none_option=None):
         status = click.prompt("Choose an option", type=int)
 
         if 0 < status < last_option:
-            return status
+            return status + 1 if status == 5 else status
         # if user chose to cancel
         elif status == last_option:
             return
