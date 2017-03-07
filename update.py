@@ -159,24 +159,59 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
         manga_id = manga_entry.series_mangadb_id.get_text()
         manga_title = manga_entry.series_title.get_text()
 
+        xml_tag_format = "<{0}>{1}</{0}>"
+        xml_field_tags = ""
+
+        new_status = "0"
+
         # if we are incrementing the chapter or volume count for a manga
-        if new_value is None and field_type in ["chapter", "volume"]:
-            if field_type == "chapter":
-                current_value = int(manga_entry.my_read_chapters.get_text())
-            else:
-                current_value = int(manga_entry.my_read_volumes.get_text())
-            new_value = current_value + 1
+        if field_type in ["chapter", "volume"]:
+            if new_value is None:
+                if field_type == "chapter":
+                    current_value = int(manga_entry.my_read_chapters.get_text())
+                else:
+                    current_value = int(manga_entry.my_read_volumes.get_text())
+                new_value = current_value + 1
+
+            series_chapters = int(manga_entry.series_chapters.get_text())
+            series_volumes = int(manga_entry.series_volumes.get_text())
+
+            if (new_value == series_chapters and field_type == "chapter") or \
+               (new_value == series_volumes and field_type == "volume"):
+                click.echo("{} {} is the last in the series.".format(field_type.title(), new_value))
+                if click.confirm("Do you wish to change the status to completed?"):
+                    xml_field_tags += xml_tag_format.format("status", "2")
+                    xml_field_tags += xml_tag_format.format("chapter", series_chapters)
+                    xml_field_tags += xml_tag_format.format("volume", series_volumes)
+                    new_status = "2"
+
+            elif manga_entry.my_status.get_text() != "1":
+                if click.confirm("Do you wish to change the status to watching?"):
+                    xml_field_tags += xml_tag_format.format("status", "1")
+                    new_status = "1"
+
+        if new_status != "2":
+            xml_field_tags += xml_tag_format.format(field_type, new_value)
 
         # prepare xml data for sending to server
-        xml = '<?xml version="1.0" encoding="UTF-8"?><entry><{0}>{1}</{0}></entry>'.format(field_type, new_value)
+        xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
 
         # send the request to the server, uses GET due to bug in API handling POST requests
-        r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml?data={}".format(manga_id, xml),
-                         auth=credentials)
+        r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml".format(manga_id),
+                         params={"data": xml}, auth=credentials)
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            click.echo("Updated \"{}\" to {} {}".format(manga_title, field_type, new_value))
+            updated_msg_format = "Updated \"{}\" to {} {}."
+
+            updated_msg = updated_msg_format.format(manga_title, field_type, new_value)
+
+            if field_type == "status":
+                updated_msg = updated_msg_format.format(manga_title, field_type, MANGA_STATUS_MAP[str(new_value)])
+            elif new_status != "0":
+                updated_msg += " Status set to \"{}\"".format(MANGA_STATUS_MAP[new_status])
+
+            click.echo(updated_msg)
         else:
             click.echo("Error updating manga. Please try again.")
 

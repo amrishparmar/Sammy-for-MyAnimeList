@@ -11,8 +11,8 @@ def menu_heading(username, submenu=None):
     :param submenu: a string with the name of submenu
     """
     click.clear()
-    click.secho("===== MAL CLI Application =====", bg="blue")
-    click.echo("Logged in as: " + click.style("{}\n".format(username), fg="yellow"))
+    click.secho("===== MAL CLI Application =====", fg="white", bg="blue")
+    click.echo("Logged in as: " + click.style("{}\n".format(username), fg="yellow", bg="cyan"))
     if submenu is not None:
         click.echo("--- Update your {} list ---".format(submenu))
 
