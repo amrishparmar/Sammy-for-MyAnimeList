@@ -2,6 +2,7 @@ import click
 import search
 import update
 import add
+import delete
 
 
 def menu_heading(username, submenu=None):
@@ -45,6 +46,7 @@ def update_anime_menu(credentials):
     """Menu with options for updating user anime list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :return: None if user chose to go back
     """
     while True:
         menu_heading(credentials[0], submenu="anime")
@@ -54,13 +56,14 @@ def update_anime_menu(credentials):
         click.echo("4) Set episode count for existing anime")
         click.echo("5) Set score for existing anime")
         click.echo("6) Set status for existing anime")
-        click.echo("9) Go back to main menu")
+        click.echo("7) Delete existing anime")
+        click.echo("0) Go back to main menu")
 
         choice = click.prompt("Please choose an option", type=int)
 
-        if choice in range(1, 7):
+        if choice in range(1, 8):
             _update_anime_mapping[choice](credentials)
-        elif choice == 9:
+        elif choice == 0:
             return
 
 
@@ -68,6 +71,7 @@ def update_manga_menu(credentials):
     """Menu with options for updating user manga list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :return: None if user chose to go back
     """
     while True:
         menu_heading(credentials[0], submenu="manga")
@@ -79,13 +83,14 @@ def update_manga_menu(credentials):
         click.echo("6) Set volume count for existing manga")
         click.echo("7) Set score for existing manga")
         click.echo("8) Set status for existing manga")
-        click.echo("9) Go back to main menu")
+        click.echo("9) Delete existing manga")
+        click.echo("0) Go back to main menu")
 
         choice = click.prompt("Please choose an option", type=int)
 
-        if choice in range(1, 9):
+        if choice in range(0, 10):
             _update_manga_mapping[choice](credentials)
-        elif choice == 9:
+        elif choice == 0:
             return
 
 # function mappings for main menu
@@ -103,7 +108,8 @@ _update_anime_mapping = {
     3: update.increment_episode_count,
     4: update.set_episode_count,
     5: update.set_anime_score,
-    6: update.set_anime_status
+    6: update.set_anime_status,
+    7: delete.delete_anime_entry
 }
 
 # function mappings for update manga menu
@@ -116,4 +122,5 @@ _update_manga_mapping = {
     6: update.set_volume_count,
     7: update.set_manga_score,
     8: update.set_manga_status,
+    9: delete.delete_manga_entry
 }
