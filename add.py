@@ -31,22 +31,30 @@ def add_entry(credentials, entry_type, entry=None):
     xml_field_tags = ""
 
     # get the choice of status
-    status = helpers.get_status_choice_from_user(entry_type)
+    status = helpers.get_status_choice_from_user(entry_type, skip_option=False)
 
     if status != 6:
         # append the status tag to our xml string if the user didn't opt to skip
         xml_field_tags += xml_tag_format.format("status", status)
 
         if entry_type == "anime":
-            # get the choice of episode count
-            episodes = helpers.get_new_count_from_user("episode", int(entry.episodes.get_text()))
-            # append
+            if status == 2:
+                episodes = entry.episodes.get_text()
+            else:
+                # get the choice of episode count
+                episodes = helpers.get_new_count_from_user("episode", int(entry.episodes.get_text()))
+
+            # append the episode count if the user didn't opt to skip
             if episodes is not None:
                 xml_field_tags += xml_tag_format.format("episode", episodes)
         else:
-            # get the choice of chapter and volume count
-            chapters = helpers.get_new_count_from_user("chapter", int(entry.chapters.get_text()))
-            volumes = helpers.get_new_count_from_user("volume", int(entry.volumes.get_text()))
+            if status == 2:
+                chapters = entry.chapters.get_text()
+                volumes = entry.volumes.get_text()
+            else:
+                # get the choice of chapter and volume count
+                chapters = helpers.get_new_count_from_user("chapter", int(entry.chapters.get_text()))
+                volumes = helpers.get_new_count_from_user("volume", int(entry.volumes.get_text()))
 
             # append chapter and volume choice if the user didn't opt to skip
             if chapters is not None:
@@ -54,12 +62,12 @@ def add_entry(credentials, entry_type, entry=None):
             if volumes is not None:
                 xml_field_tags += xml_tag_format.format("volume", volumes)
 
-    # get the choice of score
-    score = helpers.get_score_choice_from_user()
+        # get the choice of score
+        score = helpers.get_score_choice_from_user()
 
-    # append score choice if the user didn't opt to skip
-    if score is not None:
-        xml_field_tags += xml_tag_format.format("score", score)
+        # append score choice if the user didn't opt to skip
+        if score is not None:
+            xml_field_tags += xml_tag_format.format("score", score)
 
     # form the xml string
     xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)

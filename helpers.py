@@ -2,10 +2,11 @@ import click
 import constants
 
 
-def get_status_choice_from_user(media_type):
+def get_status_choice_from_user(media_type, skip_option=True):
     """Prompt the user for a choice of new status and return it
 
     :param media_type: A string, the type of media for which the status is being updated, must be "anime" or "manga"
+    :param skip_option:
     :return: An integer, the new status or None if the user cancelled
     """
     if media_type not in ["anime", "manga"]:
@@ -23,8 +24,9 @@ def get_status_choice_from_user(media_type):
     # get the number corresponding to the last option
     last_option = int(list(status_map.keys())[-1])
 
-    # print out the option to choose none of the statuses
-    click.echo("{}> [{}]".format(last_option, "Skip"))
+    if skip_option:
+        # print out the option to choose none of the statuses
+        click.echo("{}> [{}]".format(last_option, "Skip"))
 
     # get a valid choice from the user
     while True:
@@ -34,10 +36,11 @@ def get_status_choice_from_user(media_type):
         if 0 < status < last_option:
             return status + 1 if status == 5 else status  # remap choice of 5 to 6 if chosen
         # if the user cancelled
-        elif status == last_option:
+        elif status == last_option and skip_option:
             return
         else:
-            click.echo("You must enter a value between 1 and {}.".format(last_option))
+            max_value = last_option if skip_option else last_option - 1
+            click.echo("You must enter a value between 1 and {}.".format(max_value))
 
 
 def get_score_choice_from_user():

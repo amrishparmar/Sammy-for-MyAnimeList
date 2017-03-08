@@ -25,6 +25,8 @@ def display_entry_details(entry):
 
             click.echo("{}: {}".format(detail_name, detail_string))
 
+    click.pause()
+
 
 def search(credentials, search_type):
     """Search for an anime or manga entry and return it
@@ -37,7 +39,7 @@ def search(credentials, search_type):
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 
     click.echo()
-    click.secho("{} search".format(search_type.title()), fg="green")
+    click.echo("{} search".format(search_type.title()))
 
     # get search terms from the user
     search_string = click.prompt("Enter a search term ('q' to cancel)")
@@ -52,6 +54,7 @@ def search(credentials, search_type):
 
     if r.status_code == 204:
         click.echo("No results found for query \"{}\"".format(search_string))
+        click.pause()
     else:
         # decode the raw content so beautiful soup can read it as xml not a string
         r.raw.decode_content = True
@@ -90,9 +93,6 @@ def search(credentials, search_type):
             if option != num_results + 1:
                 return matches[option - 1]
 
-    # await a keypress before continuing so that it doesn't go straight back to menu
-    click.pause()
-
 
 def anime_search(credentials):
     """Search for an anime and print out the results
@@ -105,7 +105,6 @@ def anime_search(credentials):
 
     if result is not None:
         display_entry_details(result)
-        click.pause()
 
 
 def manga_search(credentials):
@@ -119,4 +118,3 @@ def manga_search(credentials):
 
     if result is not None:
         display_entry_details(result)
-        click.pause()
