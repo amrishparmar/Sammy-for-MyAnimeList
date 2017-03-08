@@ -85,7 +85,8 @@ def increment_episode_count(credentials):
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "anime")
 
-    _update_anime_list_entry(credentials, "episode", result)
+    if result is not None:
+        _update_anime_list_entry(credentials, "episode", result)
 
 
 def set_episode_count(credentials):
@@ -100,8 +101,6 @@ def set_episode_count(credentials):
     if result is not None:
         episodes = helpers.get_new_count_from_user("episode")
         _update_anime_list_entry(credentials, "episode", result, episodes)
-    else:
-        click.pause()
 
 
 def set_anime_score(credentials):
@@ -118,9 +117,6 @@ def set_anime_score(credentials):
         score = helpers.get_score_choice_from_user()
         if score is not None:
             _update_anime_list_entry(credentials, "score", result, score)
-            return
-
-    click.pause()
 
 
 def set_anime_status(credentials):
@@ -136,8 +132,6 @@ def set_anime_status(credentials):
         status = helpers.get_status_choice_from_user("anime")
 
         _update_anime_list_entry(credentials, "status", result, status)
-    else:
-        click.pause()
 
 
 def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=None):
@@ -230,7 +224,9 @@ def increment_chapter_count(credentials):
 
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
-    _update_manga_list_entry(credentials, "chapter", result)
+
+    if result is not None:
+        _update_manga_list_entry(credentials, "chapter", result)
 
 
 def increment_volume_count(credentials):
@@ -241,7 +237,9 @@ def increment_volume_count(credentials):
 
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "manga")
-    _update_manga_list_entry(credentials, "volume", result)
+
+    if result is not None:
+        _update_manga_list_entry(credentials, "volume", result)
 
 
 def set_chapter_count(credentials):
@@ -256,8 +254,6 @@ def set_chapter_count(credentials):
     if result is not None:
         chapters = helpers.get_new_count_from_user("chapter")
         _update_manga_list_entry(credentials, "chapter", result, chapters)
-    else:
-        click.pause()
 
 
 def set_volume_count(credentials):
@@ -272,8 +268,6 @@ def set_volume_count(credentials):
     if result is not None:
         volumes = helpers.get_new_count_from_user("volume")
         _update_manga_list_entry(credentials, "volume", result, volumes)
-    else:
-        click.pause()
 
 
 def set_manga_score(credentials):
@@ -289,9 +283,6 @@ def set_manga_score(credentials):
         score = helpers.get_score_choice_from_user()
         if score is not None:
             _update_manga_list_entry(credentials, "score", result, score)
-            return
-
-    click.pause()
 
 
 def set_manga_status(credentials):
@@ -307,8 +298,6 @@ def set_manga_status(credentials):
         status = helpers.get_status_choice_from_user("manga")
 
         _update_manga_list_entry(credentials, "status", result, status)
-    else:
-        click.pause()
 
 
 def search_list(username, search_type):
@@ -324,69 +313,73 @@ def search_list(username, search_type):
 
     click.echo()
 
-    # get an anime or manga title from the user
-    search_string = click.prompt("Enter name of {} to update".format(search_type))
+    while True:
+        # get an anime or manga title from the user
+        search_string = click.prompt("Enter name of {} to update".format(search_type))
 
-    # normalise to lowercase for easier searching
-    search_lower = search_string.lower()
+        # normalise to lowercase for easier searching
+        search_lower = search_string.lower()
 
-    # store the search string as a list of tokens
-    search_tokens = search_lower.split()
+        # store the search string as a list of tokens
+        search_tokens = search_lower.split()
 
-    # make the request to the server and get the results
-    r = requests.get("https://myanimelist.net/malappinfo.php", params={"u": username, "type": search_type}, stream=True)
-    r.raw.decode_content = True
+        # make the request to the server and get the results
+        r = requests.get("https://myanimelist.net/malappinfo.php", params={"u": username, "type": search_type}, stream=True)
+        r.raw.decode_content = True
 
-    soup = BeautifulSoup(r.raw, "xml")
+        soup = BeautifulSoup(r.raw, "xml")
 
-    matches = []
+        matches = []
 
-    # iterate over the returned entries for the search type
-    for entry in soup.find_all(search_type):
-        # normalise the title and synonyms to lowercase
-        series_title_lower = entry.series_title.get_text().lower()
-        series_synonyms_lower = entry.series_synonyms.get_text().lower()
+        # iterate over the returned entries for the search type
+        for entry in soup.find_all(search_type):
+            # normalise the title and synonyms to lowercase
+            series_title_lower = entry.series_title.get_text().lower()
+            series_synonyms_lower = entry.series_synonyms.get_text().lower()
 
-        # if the whole search string matches the entry then add it to our list of matches
-        if search_lower in series_title_lower or search_lower in series_synonyms_lower:
-            matches.append(entry)
-            continue
-
-        # check if any of our tokens matches the entry
-        for token in search_tokens:
-            if token in series_title_lower or token in series_synonyms_lower:
+            # if the whole search string matches the entry then add it to our list of matches
+            if search_lower in series_title_lower or search_lower in series_synonyms_lower:
                 matches.append(entry)
-                break
+                continue
 
-    num_results = len(matches)
+            # check if any of our tokens matches the entry
+            for token in search_tokens:
+                if token in series_title_lower or token in series_synonyms_lower:
+                    matches.append(entry)
+                    break
 
-    if num_results == 0:
-        click.echo("Could not find {} matching \"{}\" on your list".format(search_type, search_string))
-        return
-    elif num_results == 1:
-        return matches[0]
-    else:
-        click.echo("We found {} results. Did you mean:".format(num_results))
+        num_results = len(matches)
 
-        # iterate over the matches and print them out
-        for i in range(len(matches)):
-            title_format = "{}> {} ({})" if matches[i].series_synonyms.get_text() != "" else "{}> {}"
-            click.echo(title_format.format(i + 1, matches[i].series_title.get_text(),
-                                           matches[i].series_synonyms.get_text()))
-
-        click.echo("{}> [None of these]".format(num_results + 1))
-
-        # get a valid choice from the user
-        while True:
-            option = click.prompt("Please choose an option", type=int)
-            if 1 <= option <= num_results + 1:
-                break
+        if num_results == 0:
+            click.echo("Could not find {} matching \"{}\" on your list".format(search_type, search_string))
+            if click.confirm("Try again?"):
+                continue
             else:
-                click.echo("You must enter a value between {} and {}".format(1, num_results + 1))
+                return
+        elif num_results == 1:
+            return matches[0]
+        else:
+            click.echo("We found {} results. Did you mean:".format(num_results))
 
-        # check that the user didn't choose the none of these option before returning the match
-        if option != num_results + 1:
-            return matches[option - 1]
+            # iterate over the matches and print them out
+            for i in range(len(matches)):
+                title_format = "{}> {} ({})" if matches[i].series_synonyms.get_text() != "" else "{}> {}"
+                click.echo(title_format.format(i + 1, matches[i].series_title.get_text(),
+                                               matches[i].series_synonyms.get_text()))
+
+            click.echo("{}> [None of these]".format(num_results + 1))
+
+            # get a valid choice from the user
+            while True:
+                option = click.prompt("Please choose an option", type=int)
+                if 1 <= option <= num_results + 1:
+                    break
+                else:
+                    click.echo("You must enter a value between {} and {}".format(1, num_results + 1))
+
+            # check that the user didn't choose the none of these option before returning the match
+            if option != num_results + 1:
+                return matches[option - 1]
 
 
 def view_list(username, search_type):
