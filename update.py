@@ -23,51 +23,52 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
 
     # check that the anime_entry is valid
     if anime_entry is not None:
-        # get the id of the anime to update
-        anime_id = anime_entry.series_animedb_id.get_text()
-        anime_title = anime_entry.series_title.get_text()
-
         xml_tag_format = "<{0}>{1}</{0}>"
         xml_field_tags = ""
 
-        new_status = "0"
+        new_status = 0
 
         # if we are incrementing the episode count for an anime
         if field_type == "episode":
+            # we are are incrementing the count
             if new_value is None:
-                # get the current number of episodes watched for the anime and the title
                 current_ep_count = int(anime_entry.my_watched_episodes.get_text())
                 new_value = current_ep_count + 1
 
+            # check if the user has reached the last episode
             if new_value == int(anime_entry.series_episodes.get_text()):
                 click.echo("Episode {} is the last in the series.".format(new_value))
                 if click.confirm("Do you wish to change the status to completed?"):
                     xml_field_tags += xml_tag_format.format("status", "2")
-                    new_status = "2"
+                    new_status = 2
+            # check if the user has a status of not watching
             elif anime_entry.my_status.get_text() != "1":
                 if click.confirm("Do you wish to change the status to watching?"):
                     xml_field_tags += xml_tag_format.format("status", "1")
-                    new_status = "1"
+                    new_status = 1
 
         xml_field_tags += xml_tag_format.format(field_type, new_value)
 
-        # prepare xml data for sending to server
+        # prepare xml data and url for sending to server
         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
+        url = "https://myanimelist.net/api/animelist/update/{}.xml".format(anime_entry.series_animedb_id.get_text())
 
         # send the request to the server, uses GET due to bug in API handling POST requests
-        r = requests.get("https://myanimelist.net/api/animelist/update/{}.xml".format(anime_id), params={"data": xml},
-                         auth=credentials)
+        r = requests.get(url, params={"data": xml}, auth=credentials)
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            updated_msg_format = "Updated \"{}\" to {} {}."
+            updated_msg_format = 'Updated "{}" to {} "{}".'
+
+            anime_title = anime_entry.series_title.get_text()
 
             updated_msg = updated_msg_format.format(anime_title, field_type, new_value)
 
             if field_type == "status":
                 updated_msg = updated_msg_format.format(anime_title, field_type, ANIME_STATUS_MAP[str(new_value)])
-            elif new_status != "0":
-                updated_msg += " Status set to \"{}\"".format(ANIME_STATUS_MAP[new_status])
+            # check if the status was changed
+            elif new_status:
+                updated_msg += " Status set to \"{}\"".format(ANIME_STATUS_MAP[str(new_status)])
 
             click.echo(updated_msg)
         else:
@@ -107,6 +108,7 @@ def set_anime_score(credentials):
     """Search for and set the score for an anime on user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :return: None, when the score is updated
     """
     # prompt the user to search their list for the entry
     result = search_list(credentials[0], "anime")
@@ -155,17 +157,16 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
 
     # check the searching the list returned a valid result
     if manga_entry is not None:
-        # get the id of the manga to update
-        manga_id = manga_entry.series_mangadb_id.get_text()
         manga_title = manga_entry.series_title.get_text()
 
         xml_tag_format = "<{0}>{1}</{0}>"
         xml_field_tags = ""
 
-        new_status = "0"
+        new_status = 0
 
-        # if we are incrementing the chapter or volume count for a manga
+        # if we are changing the chapter or volume count for a manga
         if field_type in ["chapter", "volume"]:
+            # we are incrementing the count
             if new_value is None:
                 if field_type == "chapter":
                     current_value = int(manga_entry.my_read_chapters.get_text())
@@ -176,29 +177,31 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
             series_chapters = int(manga_entry.series_chapters.get_text())
             series_volumes = int(manga_entry.series_volumes.get_text())
 
+            # check if the user has reached either the last chapter or last volume
             if (new_value == series_chapters and field_type == "chapter") or \
                (new_value == series_volumes and field_type == "volume"):
                 click.echo("{} {} is the last in the series.".format(field_type.title(), new_value))
                 if click.confirm("Do you wish to change the status to completed?"):
+                    # set both the chapter and volume counts to the number in the series
                     xml_field_tags += xml_tag_format.format("status", "2")
                     xml_field_tags += xml_tag_format.format("chapter", series_chapters)
                     xml_field_tags += xml_tag_format.format("volume", series_volumes)
-                    new_status = "2"
-
+                    new_status = 2
+            # check if the user has a status of not reading
             elif manga_entry.my_status.get_text() != "1":
                 if click.confirm("Do you wish to change the status to watching?"):
                     xml_field_tags += xml_tag_format.format("status", "1")
-                    new_status = "1"
+                    new_status = 1
 
-        if new_status != "2":
+        if new_status != 2:
             xml_field_tags += xml_tag_format.format(field_type, new_value)
 
-        # prepare xml data for sending to server
+        # prepare xml data and url for sending to server
         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
+        url = "https://myanimelist.net/api/mangalist/update/{}.xml".format(manga_entry.series_mangadb_id.get_text())
 
         # send the request to the server, uses GET due to bug in API handling POST requests
-        r = requests.get("https://myanimelist.net/api/mangalist/update/{}.xml".format(manga_id),
-                         params={"data": xml}, auth=credentials)
+        r = requests.get(url, params={"data": xml}, auth=credentials)
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
@@ -208,8 +211,9 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
 
             if field_type == "status":
                 updated_msg = updated_msg_format.format(manga_title, field_type, MANGA_STATUS_MAP[str(new_value)])
-            elif new_status != "0":
-                updated_msg += " Status set to \"{}\"".format(MANGA_STATUS_MAP[new_status])
+            # check if the status was changed
+            elif new_status:
+                updated_msg += " Status set to \"{}\"".format(MANGA_STATUS_MAP[str(new_status)])
 
             click.echo(updated_msg)
         else:
@@ -276,6 +280,7 @@ def set_manga_score(credentials):
     """Search for and set the score for a manga on user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :return: None when the score is updated
     """
     result = search_list(credentials[0], "manga")
 
