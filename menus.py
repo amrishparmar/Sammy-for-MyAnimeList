@@ -13,7 +13,7 @@ def menu_heading(username, submenu=None):
     """
     click.clear()
     click.secho("===== MAL CLI Application =====", fg="white", bg="blue")
-    click.echo("Logged in as: " + click.style("{}\n".format(username), fg="yellow", bg="cyan"))
+    click.echo("Logged in as: " + click.style("{}\n".format(username), fg="white", bg="cyan"))
     if submenu is not None:
         click.echo("--- Update your {} list ---".format(submenu))
 
@@ -88,7 +88,7 @@ def update_manga_menu(credentials):
 
         choice = click.prompt("Please choose an option", type=int)
 
-        if choice in range(0, 10):
+        if choice in range(1, 10):
             _update_manga_mapping[choice](credentials)
         elif choice == 0:
             return
