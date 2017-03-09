@@ -2,6 +2,7 @@ import click
 import requests
 from bs4 import BeautifulSoup
 import html
+import add
 
 
 def display_entry_details(entry):
@@ -24,8 +25,6 @@ def display_entry_details(entry):
                 detail_string = html.unescape(detail_string).replace("<br />", "")
 
             click.echo("{}: {}".format(detail_name, detail_string))
-
-    click.pause()
 
 
 def search(credentials, search_type):
@@ -106,6 +105,9 @@ def anime_search(credentials):
     if result is not None:
         display_entry_details(result)
 
+        if click.confirm("Add this entry to your anime list?"):
+            add.add_anime_entry(credentials, entry=result)
+
 
 def manga_search(credentials):
     """Search for a manga and print out the results
@@ -118,3 +120,6 @@ def manga_search(credentials):
 
     if result is not None:
         display_entry_details(result)
+
+        if click.confirm("Add this entry to your manga list?"):
+            add.add_manga_entry(credentials, entry=result)
