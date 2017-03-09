@@ -26,28 +26,30 @@ def authenticate_user():
     :return: If successful a tuple containing strings in format (username, password), False otherwise
     """
 
-    # get the credentials from the user
-    credentials = _get_user_credentials()
+    while True:
+        # get the credentials from the user
+        credentials = _get_user_credentials()
 
-    # make a GET request to the server for an xml (we aren't really concerned with the contents though)
-    r = requests.get("https://myanimelist.net/api/account/verify_credentials.xml", auth=credentials)
+        try:
+            # make a GET request to the server for an xml (we aren't really concerned with the contents though)
+            r = requests.get("https://myanimelist.net/api/account/verify_credentials.xml", auth=credentials)
+        except requests.exceptions.ConnectionError:
+            click.echo("An error occurred when connecting. Please check your internet connection.")
+            return False
 
-    if r.status_code == 200:
-        # credentials were successfully authenticated
-        click.echo("Authenticated")
-        return credentials
+        if r.status_code == 200:
+            # credentials were successfully authenticated
+            click.echo("Authenticated")
+            return credentials
+        elif r.status_code == 401:
+            # server returned unauthorised as the credentials were not valid
+            click.echo("Incorrect username or password")
+        else:
+            # some other http error occurred
+            click.echo("Error: {}, {}".format(r.status_code, r.text))
 
-    if r.status_code == 401:
-        # server returned unauthorised as the credentials were not valid
-        click.echo("Incorrect username or password")
-    else:
-        # some other http error occurred
-        click.echo("Error: {}, {}".format(r.status_code, r.text))
-
-    # check if the user wishes to continue trying
-    if click.confirm("Try again?"):
-        # try again
-        return authenticate_user()
-    else:
-        # the user wanted to quit
-        return False
+        # check if the user wishes to continue trying
+        if click.confirm("Try again?"):
+            continue
+        else:
+            return False
