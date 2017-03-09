@@ -8,13 +8,13 @@ def _get_user_credentials():
     :return: A tuple containing strings in the format (username, password)
     """
 
-    click.clear()
     click.echo("MAL Login:")
 
     # get the username
     username = click.prompt("Please enter your MAL Username")
-    # get the password (the characters should be hidden in a POSIX terminal as they are entered)
+    # get the password (the characters should be hidden in the terminal as they are entered)
     password = click.prompt("Please enter your password", hide_input=True)
+
     return username, password
 
 

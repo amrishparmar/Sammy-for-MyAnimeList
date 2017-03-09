@@ -5,6 +5,9 @@ import click
 
 def main():
     """Main function"""
+
+    click.clear()
+
     credentials = auth.authenticate_user()
 
     if credentials:
