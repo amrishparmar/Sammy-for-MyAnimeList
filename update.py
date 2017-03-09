@@ -104,7 +104,8 @@ def set_episode_count(credentials):
     # check that the search returned a valid result
     if result is not None:
         episodes = helpers.get_new_count_from_user("episode")
-        _update_anime_list_entry(credentials, "episode", result, episodes)
+        if episodes is not None:
+            _update_anime_list_entry(credentials, "episode", result, episodes)
 
 
 def set_anime_score(credentials):
@@ -264,7 +265,8 @@ def set_chapter_count(credentials):
     # check that the search returned a valid result
     if result is not None:
         chapters = helpers.get_new_count_from_user("chapter")
-        _update_manga_list_entry(credentials, "chapter", result, chapters)
+        if chapters is not None:
+            _update_manga_list_entry(credentials, "chapter", result, chapters)
 
 
 def set_volume_count(credentials):
@@ -278,7 +280,8 @@ def set_volume_count(credentials):
     # check that the search returned a valid result
     if result is not None:
         volumes = helpers.get_new_count_from_user("volume")
-        _update_manga_list_entry(credentials, "volume", result, volumes)
+        if volumes is not None:
+            _update_manga_list_entry(credentials, "volume", result, volumes)
 
 
 def set_manga_score(credentials):
