@@ -47,6 +47,10 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
                     xml_field_tags += xml_tag_format.format("status", "1")
                     new_status = 1
 
+        # set the number of episodes to number in series if status set to completed
+        elif field_type == "status" and new_value == 2 and anime_entry.series_episodes.get_text() != "0":
+            xml_field_tags += xml_tag_format.format("episode", anime_entry.series_episodes.get_text())
+
         xml_field_tags += xml_tag_format.format(field_type, new_value)
 
         # prepare xml data and url for sending to server
@@ -186,6 +190,13 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
                 if click.confirm("Do you wish to change the status to watching?"):
                     xml_field_tags += xml_tag_format.format("status", "1")
                     new_status = 1
+
+        # set the number of chapters and volumes to number in series if status set to completed
+        elif field_type == "status" and new_value == 2:
+            if manga_entry.series_chapters.get_text() != 0:
+                xml_field_tags += xml_tag_format.format("chapter", manga_entry.series_chapters.get_text())
+            if manga_entry.series_volumes.get_text() != 0:
+                xml_field_tags += xml_tag_format.format("volume", manga_entry.series_volumes.get_text())
 
         if new_status != 2:
             xml_field_tags += xml_tag_format.format(field_type, new_value)
