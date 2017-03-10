@@ -49,7 +49,7 @@ def get_score_choice_from_user():
     :return: An integer, the new score or None if the user cancelled
     """
     while True:
-        score = click.prompt("Enter the new score (Enter -1 to cancel)", type=int)
+        score = click.prompt("Enter the new score (Enter -1 to skip)", type=int)
 
         # ensure that the score is an int between 1 and 10 (inclusive)
         if 0 < score < 11:
@@ -72,7 +72,7 @@ def get_new_count_from_user(field_type, limit=0):
         raise ValueError("Limit must be greater than or equal to 0")
 
     while True:
-        count = click.prompt("Enter the new {} count (Enter -1 to cancel)".format(field_type), type=int)
+        count = click.prompt("Enter the new {} count (Enter -1 to skip)".format(field_type), type=int)
 
         if 0 <= count:
             # if there is no limit or there is a valid count
