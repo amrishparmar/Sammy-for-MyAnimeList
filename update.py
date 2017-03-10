@@ -62,10 +62,8 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            updated_msg_format = 'Updated "{}" to {} "{}".'
-
             anime_title = anime_entry.series_title.get_text()
-
+            updated_msg_format = 'Updated "{}" to {} "{}".'
             updated_msg = updated_msg_format.format(anime_title, field_type, new_value)
 
             if field_type == "status":
@@ -90,6 +88,7 @@ def increment_episode_count(credentials):
     result = search_list(credentials[0], "anime")
 
     if result is not None:
+        echo_entry_title(result)
         _update_anime_list_entry(credentials, "episode", result)
 
 
@@ -103,6 +102,7 @@ def set_episode_count(credentials):
 
     # check that the search returned a valid result
     if result is not None:
+        echo_entry_title(result)
         episodes = helpers.get_new_count_from_user("episode")
         if episodes is not None:
             _update_anime_list_entry(credentials, "episode", result, episodes)
@@ -119,6 +119,7 @@ def set_anime_score(credentials):
 
     # check that the search returned a valid result
     if result is not None:
+        echo_entry_title(result)
         score = helpers.get_score_choice_from_user()
         if score is not None:
             _update_anime_list_entry(credentials, "score", result, score)
@@ -134,6 +135,7 @@ def set_anime_status(credentials):
 
     # check that the search returned a valid result
     if result is not None:
+        echo_entry_title(result)
         status = helpers.get_status_choice_from_user("anime")
 
         _update_anime_list_entry(credentials, "status", result, status)
@@ -238,6 +240,7 @@ def increment_chapter_count(credentials):
     result = search_list(credentials[0], "manga")
 
     if result is not None:
+        echo_entry_title(result)
         _update_manga_list_entry(credentials, "chapter", result)
 
 
@@ -251,6 +254,7 @@ def increment_volume_count(credentials):
     result = search_list(credentials[0], "manga")
 
     if result is not None:
+        echo_entry_title(result)
         _update_manga_list_entry(credentials, "volume", result)
 
 
@@ -264,6 +268,7 @@ def set_chapter_count(credentials):
 
     # check that the search returned a valid result
     if result is not None:
+        echo_entry_title(result)
         chapters = helpers.get_new_count_from_user("chapter")
         if chapters is not None:
             _update_manga_list_entry(credentials, "chapter", result, chapters)
@@ -279,6 +284,7 @@ def set_volume_count(credentials):
 
     # check that the search returned a valid result
     if result is not None:
+        echo_entry_title(result)
         volumes = helpers.get_new_count_from_user("volume")
         if volumes is not None:
             _update_manga_list_entry(credentials, "volume", result, volumes)
@@ -294,6 +300,7 @@ def set_manga_score(credentials):
 
     # check that the search returned a valid result
     if result is not None:
+        echo_entry_title(result)
         score = helpers.get_score_choice_from_user()
         if score is not None:
             _update_manga_list_entry(credentials, "score", result, score)
@@ -309,6 +316,7 @@ def set_manga_status(credentials):
 
     # check that the search returned a valid result
     if result is not None:
+        echo_entry_title(result)
         status = helpers.get_status_choice_from_user("manga")
 
         _update_manga_list_entry(credentials, "status", result, status)
@@ -457,3 +465,7 @@ def view_manga_list(credentials):
     """
 
     view_list(credentials[0], "manga")
+
+
+def echo_entry_title(entry):
+    click.echo("Updating details for the entry \"{}\"...".format(entry.series_title.get_text()))
