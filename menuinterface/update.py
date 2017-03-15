@@ -2,7 +2,8 @@ import click
 import requests
 from bs4 import BeautifulSoup
 from constants import ANIME_STATUS_MAP, ANIME_TYPE_MAP, MANGA_STATUS_MAP, MANGA_TYPE_MAP
-import helpers
+
+from menuinterface import helpers
 
 
 def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=None):

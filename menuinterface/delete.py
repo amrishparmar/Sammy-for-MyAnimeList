@@ -1,6 +1,7 @@
 import click
 import requests
-import update
+
+from menuinterface import update
 
 
 def _delete_entry(credentials, entry_type):

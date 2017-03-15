@@ -1,8 +1,9 @@
-import unittest
-from unittest import mock
 import sys
+import unittest
 from io import StringIO
-import helpers
+from unittest import mock
+
+from menuinterface import helpers
 
 
 class TestGetStatusChoice(unittest.TestCase):

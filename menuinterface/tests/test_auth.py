@@ -1,6 +1,7 @@
 import unittest
 from unittest import mock
-import auth
+
+from menuinterface import auth
 
 
 class TestGetUserCredentials(unittest.TestCase):

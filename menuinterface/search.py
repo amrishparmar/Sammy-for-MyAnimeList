@@ -1,8 +1,10 @@
+import html
+
 import click
 import requests
 from bs4 import BeautifulSoup
-import html
-import add
+
+from menuinterface import add
 
 
 def display_entry_details(entry):

@@ -19,7 +19,7 @@ def _get_user_credentials():
 
 
 def authenticate_user():
-    """Authenticates a user with MAL
+    """Get a user's login details and verify the validity
 
     Connects to the MAL website to check whether a given combination of username/password is valid
 

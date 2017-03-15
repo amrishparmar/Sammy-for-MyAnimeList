@@ -1,8 +1,9 @@
 import click
+import delete
 import search
 import update
-import add
-import delete
+
+from menuinterface import add
 
 
 def menu_heading(username, submenu=None):

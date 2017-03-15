@@ -1,5 +1,6 @@
 import click
-import constants
+
+from menuinterface import constants
 
 
 def get_status_choice_from_user(media_type, skip_option=True):
