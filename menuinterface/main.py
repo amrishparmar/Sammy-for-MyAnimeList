@@ -1,6 +1,6 @@
 import click
-import menus
 
+from menuinterface import menus
 from menuinterface import auth
 
 

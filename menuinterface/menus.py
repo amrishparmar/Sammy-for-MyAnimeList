@@ -1,8 +1,8 @@
 import click
-import delete
-import search
-import update
 
+from menuinterface import delete
+from menuinterface import search
+from menuinterface import update
 from menuinterface import add
 
 

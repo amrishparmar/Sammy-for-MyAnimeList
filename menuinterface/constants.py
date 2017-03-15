@@ -1,5 +1,6 @@
 from collections import OrderedDict
 
+
 ANIME_STATUS_MAP = OrderedDict([
     ("1", "Watching"),
     ("2", "Completed"),

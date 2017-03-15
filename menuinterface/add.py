@@ -1,7 +1,7 @@
 import click
-import helpers
 import requests
 
+from menuinterface import helpers
 from menuinterface import search
 
 
