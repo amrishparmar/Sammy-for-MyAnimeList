@@ -1,8 +1,8 @@
 import click
 import requests
 
-from menuinterface import helpers
-from menuinterface import search
+from . import helpers
+from . import search
 
 
 def add_entry(credentials, entry_type, entry=None):

@@ -3,7 +3,7 @@ import unittest
 from io import StringIO
 from unittest import mock
 
-from menuinterface import helpers
+from .. import helpers
 
 
 class TestGetStatusChoice(unittest.TestCase):
