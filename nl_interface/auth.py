@@ -4,13 +4,20 @@ from enum import Enum
 
 
 class StatusCode(Enum):
+    """An Enum represented the status codes of the result of auth attempts"""
     SUCCESS = 0
     CONNECTION_ERROR = 1
     UNAUTHORISED = 2
-    OTHER = 3
+    OTHER_ERROR = 3
 
 
 def get_user_credentials(username_msg, password_msg):
+    """Get a username and password from the user
+
+    :param username_msg: The message to display when getting the username
+    :param password_msg: The message to display when getting the username
+    :return: A tuple of strings in the form (username, password)
+    """
     # get the username
     username = click.prompt(username_msg)
     # get the password (the characters should be hidden in the terminal as they are entered)
@@ -19,10 +26,10 @@ def get_user_credentials(username_msg, password_msg):
     return username, password
 
 
-def authenticate_user(credentials):
+def validate_credentials(credentials):
     """Verify the validity of a pair of credentials
 
-    :param credentials:
+    :param credentials: A tuple of strings in the form (username, password)
     :return: If successful a tuple containing strings in format (username, password) error code otherwise
     """
 
@@ -32,9 +39,9 @@ def authenticate_user(credentials):
         return StatusCode.CONNECTION_ERROR
 
     if r.status_code == 200:
-        return credentials
+        return StatusCode.SUCCESS
     elif r.status_code == 401:
         return StatusCode.UNAUTHORISED
     else:
-        return StatusCode.OTHER
+        return StatusCode.OTHER_ERROR
 

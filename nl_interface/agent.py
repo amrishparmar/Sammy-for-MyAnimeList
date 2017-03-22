@@ -1,27 +1,35 @@
+import sys
+
 import click
 
 from . import auth
 
+# the pair of user credentials
 credentials = None
 
 
 def print_msg(msg):
+    """Echo a message with the prefix Sammy>"""
     click.echo("Sammy> " + msg)
 
 
 def authorise_user():
+    """Get a pair of credentials from the user
+
+    :return: True is authenticated, False if their was an error and user quit
+    """
     global credentials
     while True:
         credentials = auth.get_user_credentials("Please enter your username", "And now your password")
 
-        result = auth.authenticate_user(credentials)
+        result = auth.validate_credentials(credentials)
 
-        if type(result) is not tuple:
+        if result is not auth.StatusCode.SUCCESS:
             if result == auth.StatusCode.CONNECTION_ERROR:
                 print_msg("Oh no, there was an error connecting to MAL. Maybe check your internet connection")
             elif result == auth.StatusCode.UNAUTHORISED:
                 print_msg("Something was wrong with the username or password :(")
-            elif result == auth.StatusCode.OTHER:
+            elif result == auth.StatusCode.OTHER_ERROR:
                 print_msg("Some kind of error has occurred :'(")
 
             if click.confirm("Sammy> Do you want to try again?"):
@@ -33,6 +41,7 @@ def authorise_user():
 
 
 def welcome():
+    """Print out the welcome message and bootstrap program functionality"""
     click.clear()
     click.echo("====== MAL Natural Language Interface ======")
     click.echo()
@@ -42,25 +51,34 @@ def welcome():
 
     if authorise_user():
         click.echo()
-        print_msg("Yay, everything checked out!")
-        print_msg("Let's get started.")
+        print_msg("Yay, everything checked out! Let's get started.")
         print_msg("What can I do for you today?")
-        return get_query()
+        get_query()
     else:
         print_msg("Bye bye!")
 
 
 def process_query(query):
+    """Process the user query
+
+    :param query: A string with the user query
+    :return:
+    """
+
+    if query in ["exit", "quit", "leave"]:
+        print_msg("Bye bye!")
+        sys.exit()
+
     print_msg("I'm sorry. I'm not sure what you mean.")
 
 
 def get_query():
+    """Get the query from the user and process it
+
+    :return:
+    """
     while True:
         click.echo()
         query = click.prompt(credentials[0], prompt_suffix="> ")
         click.echo()
-
-        if query in ["exit", "quit", "leave"]:
-            return
-
         process_query(query)
