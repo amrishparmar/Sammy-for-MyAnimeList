@@ -3,6 +3,7 @@ import sys
 import click
 
 from . import auth
+from . import query_processing
 
 # the pair of user credentials
 credentials = None
@@ -69,7 +70,11 @@ def process_query(query):
         print_msg("Bye bye!")
         sys.exit()
 
-    print_msg("I'm sorry. I'm not sure what you mean.")
+    process_result = query_processing.process(query)
+    if process_result:
+        print_msg(str(process_result))
+    else:
+        print_msg("I'm sorry. I'm not sure what you mean.")
 
 
 def get_query():
