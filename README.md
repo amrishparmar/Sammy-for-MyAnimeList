@@ -18,11 +18,11 @@ The natural language interface allows users to enter commands in plain English t
 ## Using the application
 ### Dependencies
 To run from source, the following are required:
-- Python v3.4+
-- Requests
-- Click v6+
-- BeautifulSoup v4
-- Natural Language Toolkit (NLTK) v3 [only required for the natural language interface]
+- [Python](https://www.python.org/) v3.4+
+- [Requests](http://docs.python-requests.org/en/master/)
+- [Click](http://click.pocoo.org/6/) v6+
+- [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) v4
+- [Natural Language Toolkit (NLTK)](http://www.nltk.org/) v3 [only required for the natural language interface]
 
 ### Running the application
 For the menu-driven interface run the following from the root of the project:
