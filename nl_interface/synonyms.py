@@ -4,11 +4,11 @@
 
 actions = {
     "search": ["search",
-               "find", "find me", "find some"
+               "find me some", "find some", "find me", "find",
                "look",
-               "get", "get me", "get some", "get me some"
+               "get me some", "get some", "get me", "get",
                "obtain",
-               "give", "give me", "give some", "give me some"
+               "give me some", "give some", "give me", "give",
                "send", "send me"]
 }
 
