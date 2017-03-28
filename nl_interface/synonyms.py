@@ -1,7 +1,3 @@
-# actions = {
-#     "search": ["search", "find", "find me", "look", "get", "get me", "obtain", "give me", "give", "send", "send me"]
-# }
-
 actions = {
     "search": ["search",
                "find me some", "find some", "find me", "find",
