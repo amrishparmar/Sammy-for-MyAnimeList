@@ -1,6 +1,8 @@
 # MyAnimeList CLI and NL Query Application
 An application for updating and retrieving information from [MyAnimeList.net](https://www.myanimelist.net) (MAL) using natural language queries.
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 This comprises of two applications: the **menu-driven interface** and the **natural language interface**.
 
 Common features of them include:
