@@ -1,9 +1,8 @@
 import re
 
-# import nltk
+import nltk
 
-from . import synonyms
-
+import synonyms
 
 def normalise(query):
     """
@@ -20,11 +19,23 @@ def strip_info(result):
     :param result:
     :return:
     """
-    tokens = result.split()
-    if tokens[-1] in synonyms.terms["information"]:
-        return " ".join(tokens[:-1])
-    else:
+    tokens = nltk.word_tokenize(result)
+
+    try:
+        index = synonyms.terms["information"].index(tokens[-1])
+        return result.rstrip(synonyms.terms["information"][index])
+    except ValueError:
         return result
+
+
+def strip_type(result):
+    tokens = nltk.word_tokenize(result)
+    if tokens[-1] == "anime":
+        return result.rstrip("anime"), "anime"
+    elif tokens[-1] == "manga":
+        return result.rstrip("manga"), "manga"
+
+    return result, None
 
 
 def process(query):
@@ -34,26 +45,36 @@ def process(query):
     :return:
     """
     query = normalise(query)
+    result = {"operation": None, "type": "anime"}
 
     search_syns = "|".join(synonyms.actions["search"])
     info_syns = "|".join(synonyms.terms["information"])
 
-    sm1 = re.match(".*({}) (?:(?:for|on) )?(?:{}) (?:(?:for|on) )?(.+ ?)+".format(search_syns, info_syns), query)
-    sm2 = re.match(".*({}) (?:(?:for|on) )?(.+ ?)+".format(search_syns + info_syns), query)
+    sm1 = re.match(".*({}) (?:(?:for|on) (?:the )?)?(?:{}) (?:(?:for|on) (?:the )?)?(.+ ?)+".format(
+                    search_syns, info_syns), query)
+    sm2 = re.match(".*({}) (?:(?:for|on) (?:the )?)?(.+ ?)+".format(search_syns + info_syns), query)
     sm3 = re.match(".*({}) (.+)".format(search_syns), query)
 
     if sm1 or sm2 or sm3:
-        result = {"operation": "search"}
-
+        result["operation"] = "search"
+        search_terms = ""
         if sm1:
-            result["term"] = sm1.group(2)
+            search_terms = sm1.group(2)
             print("m1")
         elif sm2:
-            result["term"] = strip_info(sm2.group(2))
+            search_terms = strip_info(sm2.group(2))
             print("m2")
         elif sm3:
-            result["term"] = strip_info(sm3.group(2))
+            search_terms = strip_info(sm3.group(2))
             print("m4")
+        search_terms_stripped = search_terms.strip(" '\"")
+        search_terms_stripped_tuple = strip_type(search_terms_stripped)
+
+        if search_terms_stripped_tuple[1] is not None:
+            result["type"] = search_terms_stripped_tuple[1]
+
+        result["term"] = search_terms_stripped_tuple[0]
+
         return result
 
     return False

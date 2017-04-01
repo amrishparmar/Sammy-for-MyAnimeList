@@ -5,7 +5,7 @@ import click
 import requests
 from bs4 import BeautifulSoup
 
-from . import agent
+import agent
 # from . import add
 
 

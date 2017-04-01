@@ -3,8 +3,8 @@ import sys
 
 import click
 
-from . import auth
-from . import query_processing
+import auth
+import query_processing
 
 # the pair of user credentials
 # credentials = None

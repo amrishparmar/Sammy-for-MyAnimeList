@@ -9,5 +9,7 @@ actions = {
 }
 
 terms = {
-    "information": ["information", "info", "data", "details", "deets"]
+    "information": ["information", "info", "data", "details", "deets"],
+    "anime": ["anime", "movie", "tv show", "show", "ova", "tv", "special", "ona"],
+    "manga": ["manga", "novel", "one-shot", "one shot", "doujinshi", "manhwa", "manhua"]
 }
