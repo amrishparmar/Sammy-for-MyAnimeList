@@ -15,7 +15,7 @@ def normalise(query):
 
 
 def strip_info(result):
-    """
+    """Strip a synonym for information from the end of a word
 
     :param result:
     :return:
@@ -38,29 +38,21 @@ def process(query):
     search_syns = "|".join(synonyms.actions["search"])
     info_syns = "|".join(synonyms.terms["information"])
 
-    m1 = re.match(".*({}) (?:(?:for|on) )?(?:{}) (?:(?:for|on) )?(.+ ?)+".format(search_syns, info_syns), query)
-    # m5 = re.match(".* ?({}) (?:for|on) (.+ ?)+".format(info_syns), query)
-    m2 = re.match(".*({}) (?:for|on) (.+?)+ (?:{})".format(search_syns, info_syns), query)
-    m3 = re.match(".*({}) (?:for|on) (.+ ?)+".format(search_syns, info_syns), query)
-    m4 = re.match(".*({}) (.+)".format(search_syns), query)
+    sm1 = re.match(".*({}) (?:(?:for|on) )?(?:{}) (?:(?:for|on) )?(.+ ?)+".format(search_syns, info_syns), query)
+    sm2 = re.match(".*({}) (?:(?:for|on) )?(.+ ?)+".format(search_syns + info_syns), query)
+    sm3 = re.match(".*({}) (.+)".format(search_syns), query)
 
-    if m1 or m2 or m3 or m4:
+    if sm1 or sm2 or sm3:
         result = {"operation": "search"}
 
-        if m1:
-            result["term"] = m1.group(2)
+        if sm1:
+            result["term"] = sm1.group(2)
             print("m1")
-        # elif m5:
-        #     result["term"] = m5.group(2)
-        #     print("m5")
-        elif m2:
-            result["term"] = m2.group(2)
+        elif sm2:
+            result["term"] = strip_info(sm2.group(2))
             print("m2")
-        elif m3:
-            result["term"] = strip_info(m3.group(2))
-            print("m3")
-        elif m4:
-            result["term"] = strip_info(m4.group(2))
+        elif sm3:
+            result["term"] = strip_info(sm3.group(2))
             print("m4")
         return result
 

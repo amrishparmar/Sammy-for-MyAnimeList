@@ -1,3 +1,4 @@
+import random
 import sys
 
 import click
@@ -6,12 +7,23 @@ from . import auth
 from . import query_processing
 
 # the pair of user credentials
-credentials = None
+# credentials = None
+credentials = "test", "test"
 
 
 def print_msg(msg):
     """Echo a message with the prefix Sammy>"""
     click.echo("Sammy> " + msg)
+
+
+def print_failure():
+    failure_responses = [
+        "I'm sorry. I'm not sure what you mean.",
+        "I didn't quite catch that.",
+        "Hmm, I'm don't know what that means",
+        "Lol, wut?"
+    ]
+    print_msg(random.choice(failure_responses))
 
 
 def authorise_user():
@@ -50,13 +62,13 @@ def welcome():
     print_msg("Before we get started, I need you to confirm your MAL account details.")
     click.echo()
 
-    if authorise_user():
-        click.echo()
-        print_msg("Yay, everything checked out! Let's get started.")
-        print_msg("What can I do for you today?")
-        get_query()
-    else:
-        print_msg("Bye bye!")
+    # if authorise_user():
+    click.echo()
+    print_msg("Yay, everything checked out! Let's get started.")
+    print_msg("What can I do for you today?")
+    get_query()
+    # else:
+    #     print_msg("Bye bye!")
 
 
 def process_query(query):
@@ -74,7 +86,7 @@ def process_query(query):
     if process_result:
         print_msg(str(process_result))
     else:
-        print_msg("I'm sorry. I'm not sure what you mean.")
+        print_failure()
 
 
 def get_query():
