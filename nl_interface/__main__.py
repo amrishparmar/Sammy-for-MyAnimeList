@@ -1,4 +1,4 @@
-from nl_interface import agent
+import agent
 
 
 def main():
