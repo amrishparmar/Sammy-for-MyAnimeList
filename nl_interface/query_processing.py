@@ -31,9 +31,9 @@ def strip_info(result):
 def strip_type(result):
     tokens = nltk.word_tokenize(result)
     if tokens[-1] == "anime":
-        return result.rstrip("anime"), "anime"
+        return result[:-6], "anime"
     elif tokens[-1] == "manga":
-        return result.rstrip("manga"), "manga"
+        return result[:-6], "manga"
 
     return result, None
 
@@ -52,7 +52,7 @@ def process(query):
 
     sm1 = re.match(".*({}) (?:(?:for|on) (?:the )?)?(?:{}) (?:(?:for|on) (?:the )?)?(.+ ?)+".format(
                     search_syns, info_syns), query)
-    sm2 = re.match(".*({}) (?:(?:for|on) (?:the )?)?(.+ ?)+".format(search_syns + info_syns), query)
+    sm2 = re.match(".*({}) (?:(?:for|on) )?(?:the )?(.+ ?)+".format(search_syns + info_syns), query)
     sm3 = re.match(".*({}) (.+)".format(search_syns), query)
 
     if sm1 or sm2 or sm3:
