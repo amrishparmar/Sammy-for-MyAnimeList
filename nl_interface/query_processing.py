@@ -1,8 +1,22 @@
+from enum import Enum
 import re
 
 import nltk
 
 import synonyms
+
+
+class OperationType(Enum):
+    SEARCH = 0,
+    UPDATE = 1,
+    ADD = 2,
+    DELETE = 3
+
+
+class MediaType(Enum):
+    ANIME = 0,
+    MANGA = 1
+
 
 def normalise(query):
     """
@@ -31,9 +45,9 @@ def strip_info(result):
 def strip_type(result):
     tokens = nltk.word_tokenize(result)
     if tokens[-1] == "anime":
-        return result[:-6], "anime"
+        return result[:-6], MediaType.ANIME
     elif tokens[-1] == "manga":
-        return result[:-6], "manga"
+        return result[:-6], MediaType.MANGA
 
     return result, None
 
@@ -45,7 +59,7 @@ def process(query):
     :return:
     """
     query = normalise(query)
-    result = {"operation": None, "type": "anime"}
+    result = {"operation": None, "type": MediaType.ANIME, "modifier": None}
 
     search_syns = "|".join(synonyms.actions["search"])
     info_syns = "|".join(synonyms.terms["information"])
@@ -56,17 +70,17 @@ def process(query):
     sm3 = re.match(".*({}) (.+)".format(search_syns), query)
 
     if sm1 or sm2 or sm3:
-        result["operation"] = "search"
+        result["operation"] = OperationType.SEARCH
         search_terms = ""
         if sm1:
             search_terms = sm1.group(2)
-            print("m1")
+            print("sm1")
         elif sm2:
             search_terms = strip_info(sm2.group(2))
-            print("m2")
+            print("sm2")
         elif sm3:
             search_terms = strip_info(sm3.group(2))
-            print("m4")
+            print("sm3")
         search_terms_stripped = search_terms.strip(" '\"")
         search_terms_stripped_tuple = strip_type(search_terms_stripped)
 
