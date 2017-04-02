@@ -59,7 +59,16 @@ def process(query):
     :return:
     """
     query = normalise(query)
-    result = {"operation": None, "type": MediaType.ANIME, "modifier": None}
+
+    result = {"operation": None,
+              "type": MediaType.ANIME,
+              "modifier": None,
+              "extra": None}
+
+    for word in synonyms.terms["hello"]:
+        if word == nltk.word_tokenize(query)[0]:
+            result["extra"] = "Hello, {}!"
+            break
 
     search_syns = "|".join(synonyms.actions["search"])
     info_syns = "|".join(synonyms.terms["information"])
@@ -89,6 +98,4 @@ def process(query):
 
         result["term"] = search_terms_stripped_tuple[0]
 
-        return result
-
-    return False
+    return result

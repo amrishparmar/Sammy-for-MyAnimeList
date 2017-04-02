@@ -98,31 +98,37 @@ def anime_search(credentials, search_string):
     """Search for an anime and print out the results
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :param search_string: fsdf
     :return:
     """
 
     result = search(credentials, "anime", search_string)
 
-    if result != StatusCode.USER_CANCELLED or result != StatusCode.NO_RESULTS:
-        agent.print_msg("Here is the entry you wanted.")
+    if result != StatusCode.USER_CANCELLED and result != StatusCode.NO_RESULTS:
+        agent.print_msg("Here is the entry you wanted.\r\n")
         display_entry_details(result)
 
         # if click.confirm("Add this entry to your anime list?"):
         #     add.add_anime_entry(credentials, entry=result)
+    elif result == StatusCode.NO_RESULTS:
+        agent.print_msg("I'm sorry I could not find any results for \"{}\".".format(search_string))
 
 
 def manga_search(credentials, search_string):
     """Search for a manga and print out the results
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :param search_string: fsdf
     :return:
     """
 
     result = search(credentials, "manga", search_string)
 
-    if result is not StatusCode.USER_CANCELLED:
+    if result != StatusCode.USER_CANCELLED and result != StatusCode.NO_RESULTS:
         agent.print_msg("Here is the entry you wanted.")
         display_entry_details(result)
 
         # if click.confirm("Add this entry to your manga list?"):
         #     add.add_manga_entry(credentials, entry=result)
+    elif result == StatusCode.NO_RESULTS:
+        agent.print_msg("I'm sorry I could not find any results for \"{}\".".format(search_string))

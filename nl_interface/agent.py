@@ -90,26 +90,23 @@ def process_query(query):
     :param query: A string with the user query
     :return:
     """
+    global credentials
 
     if query in ["exit", "quit", "leave"]:
         print_msg("Bye bye!")
         sys.exit()
 
     process_result = query_processing.process(query)
-    if process_result:
-        print_msg(str(process_result))
-        handle_query(process_result)
-    else:
+    print_msg(str(process_result))
+
+    if process_result["extra"] is not None:
+        print_msg(process_result["extra"].format(credentials[0]))
+
+    if process_result["operation"] == query_processing.OperationType.SEARCH:
+        if process_result["type"] == query_processing.MediaType.ANIME:
+            search.anime_search(credentials, process_result["term"])
+        elif process_result["type"] == query_processing.MediaType.MANGA:
+            search.manga_search(credentials, process_result["term"])
+
+    elif process_result["extra"] is None:
         print_failure()
-
-
-def handle_query(pquery):
-    global credentials
-
-    if pquery["operation"] == query_processing.OperationType.SEARCH:
-        if pquery["type"] == query_processing.MediaType.ANIME:
-            search.anime_search(credentials, pquery["term"])
-        elif pquery["type"] == query_processing.MediaType.MANGA:
-            search.manga_search(credentials, pquery["term"])
-
-
