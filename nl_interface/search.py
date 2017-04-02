@@ -48,8 +48,8 @@ def search(credentials, search_type, search_string):
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 
     # get the results
-    r = requests.get("https://myanimelist.net/api/{}/search.xml".format(search_type),
-                     params={"q": search_string.replace(" ", "+")}, auth=credentials, stream=True)
+    r = requests.get("https://myanimelist.net/api/{}/search.xml?q={}".format(
+        search_type, search_string.replace(" ", "+")), auth=credentials, stream=True)
 
     if r.status_code == 204:
         return StatusCode.NO_RESULTS
@@ -94,16 +94,16 @@ def search(credentials, search_type, search_string):
                 return StatusCode.USER_CANCELLED
 
 
-def anime_search(credentials):
+def anime_search(credentials, search_string):
     """Search for an anime and print out the results
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :return:
     """
 
-    result = search(credentials, "anime")
+    result = search(credentials, "anime", search_string)
 
-    if result is not StatusCode.USER_CANCELLED:
+    if result != StatusCode.USER_CANCELLED or result != StatusCode.NO_RESULTS:
         agent.print_msg("Here is the entry you wanted.")
         display_entry_details(result)
 
@@ -111,14 +111,14 @@ def anime_search(credentials):
         #     add.add_anime_entry(credentials, entry=result)
 
 
-def manga_search(credentials):
+def manga_search(credentials, search_string):
     """Search for a manga and print out the results
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :return:
     """
 
-    result = search(credentials, "manga")
+    result = search(credentials, "manga", search_string)
 
     if result is not StatusCode.USER_CANCELLED:
         agent.print_msg("Here is the entry you wanted.")

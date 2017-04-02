@@ -5,10 +5,11 @@ import click
 
 import auth
 import query_processing
+import search
 
 # the pair of user credentials
 # credentials = None
-credentials = "test", "test"
+credentials = "default", "default"
 
 
 def print_msg(msg):
@@ -62,13 +63,25 @@ def welcome():
     print_msg("Before we get started, I need you to confirm your MAL account details.")
     click.echo()
 
-    # if authorise_user():
-    click.echo()
-    print_msg("Yay, everything checked out! Let's get started.")
-    print_msg("What can I do for you today?")
-    get_query()
-    # else:
-    #     print_msg("Bye bye!")
+    if authorise_user():
+        click.echo()
+        print_msg("Yay, everything checked out! Let's get started.")
+        print_msg("What can I do for you today?")
+        get_query()
+    else:
+        print_msg("Bye bye!")
+
+
+def get_query():
+    """Get the query from the user and process it
+
+    :return:
+    """
+    while True:
+        click.echo()
+        query = click.prompt(credentials[0], prompt_suffix="> ")
+        click.echo()
+        process_query(query)
 
 
 def process_query(query):
@@ -85,17 +98,18 @@ def process_query(query):
     process_result = query_processing.process(query)
     if process_result:
         print_msg(str(process_result))
+        handle_query(process_result)
     else:
         print_failure()
 
 
-def get_query():
-    """Get the query from the user and process it
+def handle_query(pquery):
+    global credentials
 
-    :return:
-    """
-    while True:
-        click.echo()
-        query = click.prompt(credentials[0], prompt_suffix="> ")
-        click.echo()
-        process_query(query)
+    if pquery["operation"] == query_processing.OperationType.SEARCH:
+        if pquery["type"] == query_processing.MediaType.ANIME:
+            search.anime_search(credentials, pquery["term"])
+        elif pquery["type"] == query_processing.MediaType.MANGA:
+            search.manga_search(credentials, pquery["term"])
+
+
