@@ -101,10 +101,14 @@ def process(query):
     add_syns = "|".join(synonyms.actions["add"])
 
     am1 = re.match(".*(?:{}) (.+?)(?= (?:to )?(?:my )?(anime|manga)? list)".format(add_syns), query)
+    am2 = re.match(".*(?:{}) (.+)".format(add_syns), query)
 
-    if am1:
+    if am1 or am2:
         result["operation"] = OperationType.ADD
-        result["term"] = am1.group(1)
-        result["type"] = am1.group(2)
+        if am1:
+            result["term"] = am1.group(1)
+            result["type"] = am1.group(2)
+        elif am2:
+            result["term"] = am2.group(1)
 
     return result
