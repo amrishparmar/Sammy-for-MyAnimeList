@@ -108,5 +108,11 @@ def process_query(query):
         elif process_result["type"] == query_processing.MediaType.MANGA:
             search.manga_search(credentials, process_result["term"])
 
+    elif process_result["operation"] == query_processing.OperationType.UPDATE:
+        pass
+    elif process_result["operation"] == query_processing.OperationType.ADD:
+        pass
+    elif process_result["operation"] == query_processing.OperationType.DELETE:
+        pass
     elif process_result["extra"] is None:
         print_failure()

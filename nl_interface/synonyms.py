@@ -5,7 +5,9 @@ actions = {
                "get me some", "get some", "get me", "get",
                "obtain",
                "give me some", "give some", "give me", "give",
-               "send", "send me"]
+               "send", "send me"],
+    "update": ["update", "change", "amend"],
+    "add": ["add", "append"]
 }
 
 terms = {

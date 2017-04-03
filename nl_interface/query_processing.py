@@ -7,14 +7,14 @@ import synonyms
 
 
 class OperationType(Enum):
-    SEARCH = 0,
-    UPDATE = 1,
-    ADD = 2,
+    SEARCH = 0
+    UPDATE = 1
+    ADD = 2
     DELETE = 3
 
 
 class MediaType(Enum):
-    ANIME = 0,
+    ANIME = 0
     MANGA = 1
 
 
@@ -97,5 +97,14 @@ def process(query):
             result["type"] = search_terms_stripped_tuple[1]
 
         result["term"] = search_terms_stripped_tuple[0]
+
+    add_syns = "|".join(synonyms.actions["add"])
+
+    am1 = re.match(".*(?:{}) (.+?)(?= (?:to )?(?:my )?(anime|manga)? list)".format(add_syns), query)
+
+    if am1:
+        result["operation"] = OperationType.ADD
+        result["term"] = am1.group(1)
+        result["type"] = am1.group(2)
 
     return result

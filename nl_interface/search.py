@@ -67,7 +67,7 @@ def search(credentials, search_type, search_string):
         if num_results == 1:
             return matches[0]
         else:
-            agent.print_msg("We found {} results. Did you mean:".format(num_results))
+            agent.print_msg("I found {} results. Did you mean:".format(num_results))
 
             # iterate over the matches and print them out
             for i in range(num_results):
