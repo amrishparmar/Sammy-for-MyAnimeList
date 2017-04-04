@@ -113,4 +113,19 @@ def process(query):
             print("am2")
             result["term"] = am2.group(1)
 
+    delete_syns = "|".join(synonyms.actions["delete"])
+
+    dm1 = re.match(".*(?:{}) (.+?)(?: (?:off )?(?:from )?(?:my )?(anime|manga)? ?(?:list))".format(delete_syns), query)
+    dm2 = re.match(".*(?:{}) (.+)".format(delete_syns), query)
+
+    if dm1 or dm2:
+        result["operation"] = OperationType.DELETE
+        if dm1:
+            print("dm1")
+            result["term"] = dm1.group(1)
+            result["type"] = MediaType.MANGA if dm1.group(2) == "manga" else MediaType.ANIME
+        elif dm2:
+            print("dm2")
+            result["term"] = dm2.group(1)
+
     return result

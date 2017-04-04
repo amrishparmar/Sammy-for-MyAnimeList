@@ -5,6 +5,7 @@ import click
 
 import add
 import auth
+import delete
 import query_processing
 import search
 import ui
@@ -120,7 +121,10 @@ def process_query(query):
 
     # delete queries
     elif process_result["operation"] == query_processing.OperationType.DELETE:
-        pass
+        if process_result["type"] == query_processing.MediaType.ANIME:
+            delete.delete_entry(credentials, "anime", process_result["term"])
+        elif process_result["type"] == query_processing.MediaType.MANGA:
+            delete.delete_entry(credentials, "manga", process_result["term"])
 
     # if the system failed to understand the query
     elif process_result["extra"] is None:

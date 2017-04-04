@@ -7,7 +7,8 @@ actions = {
                "give me some", "give some", "give me", "give",
                "send", "send me"],
     "update": ["update", "change", "amend"],
-    "add": ["add", "append"]
+    "add": ["add", "append"],
+    "delete": ["delete", "remove", "eliminate", "get rid of", "take"]
 }
 
 terms = {

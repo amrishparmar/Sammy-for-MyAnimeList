@@ -349,7 +349,7 @@ def search_list(username, search_type, search_string):
     # the base url of the user list xml data
     malappinfo = "https://myanimelist.net/malappinfo.php"
 
-    r = ui.threaded_action(requests.get, "Searching {} list".format(search_type),
+    r = ui.threaded_action(requests.get, "Searching your {} list".format(search_type),
                            **{"url": malappinfo, "params": {"u": username, "type": search_type}, "stream": True})
 
     r.raw.decode_content = True
@@ -378,6 +378,7 @@ def search_list(username, search_type, search_string):
     num_results = len(matches)
 
     if num_results == 0:
+        agent.print_msg("I could not find \"{}\" on your {} list".format(search_string, search_type))
         return ListSearchStatusCode.NO_RESULTS
     elif num_results == 1:
         return matches[0]
