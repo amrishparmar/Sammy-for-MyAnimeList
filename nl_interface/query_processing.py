@@ -94,21 +94,23 @@ def process(query):
         search_terms_stripped_tuple = strip_type(search_terms_stripped)
 
         if search_terms_stripped_tuple[1] is not None:
-            result["type"] = search_terms_stripped_tuple[1]
+            result["type"] = MediaType.MANGA if search_terms_stripped_tuple[1] == "manga" else MediaType.ANIME
 
         result["term"] = search_terms_stripped_tuple[0]
 
     add_syns = "|".join(synonyms.actions["add"])
 
-    am1 = re.match(".*(?:{}) (.+?)(?= (?:to )?(?:my )?(anime|manga)? list)".format(add_syns), query)
+    am1 = re.match(".*(?:{}) (.+?)(?= (?:to )?(?:my )?(anime|manga)? ?list)".format(add_syns), query)
     am2 = re.match(".*(?:{}) (.+)".format(add_syns), query)
 
     if am1 or am2:
         result["operation"] = OperationType.ADD
         if am1:
+            print("am1")
             result["term"] = am1.group(1)
-            result["type"] = am1.group(2)
+            result["type"] = MediaType.MANGA if am1.group(2) == "manga" else MediaType.ANIME
         elif am2:
+            print("am2")
             result["term"] = am2.group(1)
 
     return result

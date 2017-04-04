@@ -1,17 +1,20 @@
+from enum import Enum
+
 import click
 import requests
 
 import agent
 import helpers
 import search
+import ui
 
 
 def add_entry(credentials, entry_type, search_string=None, entry=None):
-    """Add a new entry to the user's anime or manga
+    """Add a new entry to the user's anime or manga list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param entry_type: A string, must be either "anime" or "manga"
-    :param search_string: sdfsdfsdfsdfsd
+    :param search_string: A string, the anime or manga the user wants to add to their list
     :param entry: A beautiful soup tag, an entry to add
     :return: None, if the user cancelled
     """
@@ -23,82 +26,62 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         raise ValueError("Invalid argument combination. Both search_string and entry cannot be None.")
 
     if entry is None and search_string is not None:
-        entry = search.search(credentials, entry_type, search_string)
+        entry = search.search(credentials, entry_type, search_string, display_details=False)
 
-        if entry == search.StatusCode.NO_RESULTS:
-            return entry
-        elif entry == search.StatusCode.USER_CANCELLED:
+        if entry == search.StatusCode.NO_RESULTS or entry == search.StatusCode.USER_CANCELLED:
             return
 
-        xml_tag_format = "<{0}>{1}</{0}>"
-        xml_field_tags = ""
+    xml_tag_format = "<{0}>{1}</{0}>"
+    xml_field_tags = ""
 
-        # get the choice of status
-        status = helpers.get_status_choice_from_user(entry_type, skip_option=False)
+    # get the choice of status
+    status = helpers.get_status_choice_from_user(entry_type, skip_option=False)
 
-        if status != 6:
-            # append the status tag to our xml string if the user didn't opt to skip
-            xml_field_tags += xml_tag_format.format("status", status)
+    if status != 6:
+        # append the status tag to our xml string if the user didn't opt to skip
+        xml_field_tags += xml_tag_format.format("status", status)
 
-            if entry_type == "anime":
-                if status == 2:
-                    episodes = entry.episodes.get_text()
-                else:
-                    # get the choice of episode count
-                    episodes = helpers.get_new_count_from_user("episode", int(entry.episodes.get_text()))
-
-                # append the episode count if the user didn't opt to skip
-                if episodes is not None:
-                    xml_field_tags += xml_tag_format.format("episode", episodes)
+        if entry_type == "anime":
+            if status == 2:
+                episodes = entry.episodes.get_text()
             else:
-                if status == 2:
-                    chapters = entry.chapters.get_text()
-                    volumes = entry.volumes.get_text()
-                else:
-                    # get the choice of chapter and volume count
-                    chapters = helpers.get_new_count_from_user("chapter", int(entry.chapters.get_text()))
-                    volumes = helpers.get_new_count_from_user("volume", int(entry.volumes.get_text()))
+                # get the choice of episode count
+                episodes = helpers.get_new_count_from_user("episode", int(entry.episodes.get_text()))
 
-                # append chapter and volume choice if the user didn't opt to skip
-                if chapters is not None:
-                    xml_field_tags += xml_tag_format.format("chapter", chapters)
-                if volumes is not None:
-                    xml_field_tags += xml_tag_format.format("volume", volumes)
-
-            # get the choice of score
-            score = helpers.get_score_choice_from_user()
-
-            # append score choice if the user didn't opt to skip
-            if score is not None:
-                xml_field_tags += xml_tag_format.format("score", score)
-
-            # form the xml string
-            xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
-
-            # make the request to the server to add
-            r = requests.get("https://myanimelist.net/api/{}list/add/{}.xml".format(entry_type, entry.id.get_text()),
-                             params={"data": xml}, auth=credentials)
-
-            # inform the user whether the request was successful or not
-            if r.status_code == 201:
-                click.echo("Added \"{}\" to your {}list".format(entry.title.get_text(), entry_type))
+            # append the episode count if the user didn't opt to skip
+            if episodes is not None:
+                xml_field_tags += xml_tag_format.format("episode", episodes)
+        else:
+            if status == 2:
+                chapters = entry.chapters.get_text()
+                volumes = entry.volumes.get_text()
             else:
-                click.echo("Error adding {}. {}.".format(entry_type, r.text))
+                # get the choice of chapter and volume count
+                chapters = helpers.get_new_count_from_user("chapter", int(entry.chapters.get_text()))
+                volumes = helpers.get_new_count_from_user("volume", int(entry.volumes.get_text()))
 
+            # append chapter and volume choice if the user didn't opt to skip
+            if chapters is not None:
+                xml_field_tags += xml_tag_format.format("chapter", chapters)
+            if volumes is not None:
+                xml_field_tags += xml_tag_format.format("volume", volumes)
 
-def add_anime_entry(credentials, entry=None):
-    """Add a new anime entry to the user's anime list
+        # get the choice of score
+        score = helpers.get_score_choice_from_user()
 
-    :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    :param entry: A beautiful soup tag, an entry to add
-    """
-    add_entry(credentials, "anime", entry)
+        # append score choice if the user didn't opt to skip
+        if score is not None:
+            xml_field_tags += xml_tag_format.format("score", score)
 
+        # form the xml string
+        xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
 
-def add_manga_entry(credentials, entry=None):
-    """Add a new manga entry to the user's manga list
+        url = "https://myanimelist.net/api/{}list/add/{}.xml".format(entry_type, entry.id.get_text())
 
-    :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    :param entry: A beautiful soup tag, an entry to add
-    """
-    add_entry(credentials, "manga", entry)
+        r = ui.threaded_action(requests.get, "Adding", **{"url": url, "params": {"data": xml}, "auth": credentials})
+
+        # inform the user whether the request was successful or not
+        if r.status_code == 201:
+            agent.print_msg("I successfully added \"{}\" to your {} list".format(entry.title.get_text(), entry_type))
+        else:
+            agent.print_msg("I'm sorry, there was an error adding that to your list. {}".format(r.text))

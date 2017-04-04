@@ -6,7 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import agent
-# from . import add
+import ui
 
 
 class StatusCode(Enum):
@@ -36,22 +36,24 @@ def display_entry_details(entry):
             click.echo("{}: {}".format(detail_name, detail_string))
 
 
-def search(credentials, search_type, search_string):
+def search(credentials, search_type, search_string, display_details=True):
     """Search for an anime or manga entry and return it
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param search_type: A string denoting the media type to search for, should be either "anime" or "manga"
     :param search_string: A string, the anime or manga to search for
+    :param display_details: fsdf
     :return:
     """
     if search_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 
-    # get the results
-    r = requests.get("https://myanimelist.net/api/{}/search.xml?q={}".format(
-        search_type, search_string.replace(" ", "+")), auth=credentials, stream=True)
+    url = "https://myanimelist.net/api/{}/search.xml?q={}".format(search_type, search_string.replace(" ", "+"))
+
+    r = ui.threaded_action(requests.get, "Searching", **{"url": url, "auth": credentials, "stream": True})
 
     if r.status_code == 204:
+        agent.print_msg("I'm sorry I could not find any results for \"{}\".".format(search_string))
         return StatusCode.NO_RESULTS
     else:
         # decode the raw content so beautiful soup can read it as xml not a string
@@ -65,7 +67,10 @@ def search(credentials, search_type, search_string):
         num_results = len(matches)
 
         if num_results == 1:
-            return matches[0]
+            if display_details:
+                display_entry_details(matches[0])
+            else:
+                return matches[0]
         else:
             agent.print_msg("I found {} results. Did you mean:".format(num_results))
 
@@ -89,46 +94,10 @@ def search(credentials, search_type, search_string):
 
             # check that the user didn't choose the none of these option before trying to display entry
             if option != num_results + 1:
-                return matches[option - 1]
+                if display_details:
+                    display_entry_details(matches[option - 1])
+                else:
+                    return matches[option - 1]
             else:
                 return StatusCode.USER_CANCELLED
 
-
-def anime_search(credentials, search_string):
-    """Search for an anime and print out the results
-
-    :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    :param search_string: fsdf
-    :return:
-    """
-
-    result = search(credentials, "anime", search_string)
-
-    if result != StatusCode.USER_CANCELLED and result != StatusCode.NO_RESULTS:
-        agent.print_msg("Here is the entry you wanted.\r\n")
-        display_entry_details(result)
-
-        # if click.confirm("Add this entry to your anime list?"):
-        #     add.add_anime_entry(credentials, entry=result)
-    elif result == StatusCode.NO_RESULTS:
-        agent.print_msg("I'm sorry I could not find any results for \"{}\".".format(search_string))
-
-
-def manga_search(credentials, search_string):
-    """Search for a manga and print out the results
-
-    :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    :param search_string: fsdf
-    :return:
-    """
-
-    result = search(credentials, "manga", search_string)
-
-    if result != StatusCode.USER_CANCELLED and result != StatusCode.NO_RESULTS:
-        agent.print_msg("Here is the entry you wanted.")
-        display_entry_details(result)
-
-        # if click.confirm("Add this entry to your manga list?"):
-        #     add.add_manga_entry(credentials, entry=result)
-    elif result == StatusCode.NO_RESULTS:
-        agent.print_msg("I'm sorry I could not find any results for \"{}\".".format(search_string))
