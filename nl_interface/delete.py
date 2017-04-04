@@ -1,52 +1,42 @@
 import click
 import requests
 
-from . import update
+import agent
+import ui
+import update
 
 
-def _delete_entry(credentials, entry_type):
+def delete_entry(credentials, entry_type, search_string):
     """Delete an entry on the user's anime or manga list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param entry_type: A string, must be either "anime" or "manga"
+    :param search_string: fdsfsdf
     """
     if entry_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(entry_type, "anime", "manga"))
 
-    entry = update.search_list(credentials[0], entry_type)
+    entry = update.search_list(credentials[0], entry_type, search_string)
 
     if entry is not None:
         # confirm that this is what the user intended
-        if click.confirm("Are you sure you want to delete {}?".format(entry.series_title.get_text())):
+        if click.confirm("Sammy> Are you sure you want to delete {}?".format(entry.series_title.get_text())):
             entry_id = entry.series_animedb_id.get_text() if entry_type == "anime" \
                                                           else entry.series_mangadb_id.get_text()
 
-            # prepare the url and send the delete request to the server
+            # prepare the url
             url = "https://myanimelist.net/api/{}list/delete/{}.xml".format(entry_type, entry_id)
-            r = requests.delete(url, auth=credentials)
+
+            # send the delete request to the server
+            r = ui.threaded_action(requests.delete, "Deleting", **{"url": url, "auth": credentials})
 
             # inform the user of the result
             if r.status_code == 200:
-                click.echo("{} was successfully deleted.".format(entry.series_title.get_text()))
+                agent.print_msg("{} was successfully deleted.".format(entry.series_title.get_text()))
             else:
-                click.echo("Error deleting {}. Please try again.".format(entry_type))
+                agent.print_msg("I'm sorry there was an error deleting {}. Please try again.".format(
+                                entry.series_title.get_text()))
         else:
-            click.echo("Operation cancelled. Nothing was deleted.")
+            agent.print_msg("The delete operation was cancelled. Nothing was removed from your {} list.".format(
+                            entry_type))
 
-        click.pause()
-
-
-def delete_anime_entry(credentials):
-    """Delete an entry on the user's anime list
-
-    :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    """
-    _delete_entry(credentials, "anime")
-
-
-def delete_manga_entry(credentials):
-    """Delete an entry on the user's manga list
-
-    :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    """
-    _delete_entry(credentials, "manga")

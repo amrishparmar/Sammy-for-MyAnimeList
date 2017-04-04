@@ -4,8 +4,10 @@ import click
 import requests
 from bs4 import BeautifulSoup
 
-# import helpers
+import agent
+import helpers
 from constants import ANIME_STATUS_MAP, ANIME_TYPE_MAP, MANGA_STATUS_MAP, MANGA_TYPE_MAP
+import ui
 
 
 class ListSearchStatusCode(Enum):
@@ -344,8 +346,12 @@ def search_list(username, search_type, search_string):
 
     click.echo()
 
-    # make the request to the server and get the results
-    r = requests.get("https://myanimelist.net/malappinfo.php", params={"u": username, "type": search_type}, stream=True)
+    # the base url of the user list xml data
+    malappinfo = "https://myanimelist.net/malappinfo.php"
+
+    r = ui.threaded_action(requests.get, "Searching {} list".format(search_type),
+                           **{"url": malappinfo, "params": {"u": username, "type": search_type}, "stream": True})
+
     r.raw.decode_content = True
 
     soup = BeautifulSoup(r.raw, "xml")
@@ -376,7 +382,7 @@ def search_list(username, search_type, search_string):
     elif num_results == 1:
         return matches[0]
     else:
-        click.echo("I found {} results. Did you mean:".format(num_results))
+        agent.print_msg("I found {} results. Did you mean:".format(num_results))
 
         # iterate over the matches and print them out
         for i in range(len(matches)):
@@ -414,8 +420,11 @@ def view_list(username, search_type):
     # the base url of the user list xml data
     malappinfo = "https://myanimelist.net/malappinfo.php"
 
+    r = ui.threaded_action(requests.get, "Getting {} list".format(search_type),
+                           **{"url": malappinfo, "params": {"u": username, "type": search_type}, "stream": True})
+
     # make the request to the server and get the results
-    r = requests.get(malappinfo, params={"u": username, "type": search_type}, stream=True)
+    # r = requests.get(malappinfo, params={"u": username, "type": search_type}, stream=True)
     r.raw.decode_content = True
 
     soup = BeautifulSoup(r.raw, "xml")
@@ -443,26 +452,3 @@ def view_list(username, search_type):
 
         i += 1
 
-    click.pause()
-
-
-def view_anime_list(credentials):
-    """View the anime list of a user
-
-    :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    """
-
-    view_list(credentials[0], "anime")
-
-
-def view_manga_list(credentials):
-    """View the manga list of a user
-
-    :param credentials: A tuple containing valid MAL account details in the format (username, password)
-    """
-
-    view_list(credentials[0], "manga")
-
-
-def echo_entry_title(entry):
-    click.echo("Updating details for the entry \"{}\"...".format(entry.series_title.get_text()))
