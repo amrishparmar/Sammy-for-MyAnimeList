@@ -11,7 +11,7 @@ def delete_entry(credentials, entry_type, search_string):
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param entry_type: A string, must be either "anime" or "manga"
-    :param search_string: fdsfsdf
+    :param search_string: A string, the entry the user wants to delete
     """
     if entry_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(entry_type, "anime", "manga"))
@@ -31,7 +31,7 @@ def delete_entry(credentials, entry_type, search_string):
                 # prepare the url
                 url = "https://myanimelist.net/api/{}list/delete/{}.xml".format(entry_type, entry_id)
 
-                # send the delete request to the server
+                # send the async delete request to the server
                 r = ui.threaded_action(requests.delete, "Deleting", **{"url": url, "auth": credentials})
 
                 # inform the user of the result

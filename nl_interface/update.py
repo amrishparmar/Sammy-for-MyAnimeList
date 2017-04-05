@@ -11,6 +11,7 @@ import ui
 
 
 class ListSearchStatusCode(Enum):
+    """"An Enum represented the type of result of list searches"""
     NO_RESULTS = 0
     USER_CANCELLED = 1
 
@@ -337,7 +338,7 @@ def search_list(username, search_type, search_string):
 
     :param username: A string, the username of a MAL user
     :param search_type: A string, must be either "anime" or "manga"
-    :param search_string: fsdfs
+    :param search_string: A string, the entry the user wants to update
     :return: A beautiful soup tag or None if unsuccessful
     """
 
@@ -419,13 +420,12 @@ def view_list(username, search_type):
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 
     # the base url of the user list xml data
-    malappinfo = "https://myanimelist.net/malappinfo.php"
-
-    r = ui.threaded_action(requests.get, "Getting {} list".format(search_type),
-                           **{"url": malappinfo, "params": {"u": username, "type": search_type}, "stream": True})
+    url = "https://myanimelist.net/malappinfo.php"
 
     # make the request to the server and get the results
-    # r = requests.get(malappinfo, params={"u": username, "type": search_type}, stream=True)
+    r = ui.threaded_action(requests.get, "Getting {} list".format(search_type),
+                           **{"url": url, "params": {"u": username, "type": search_type}, "stream": True})
+
     r.raw.decode_content = True
 
     soup = BeautifulSoup(r.raw, "xml")
@@ -452,4 +452,3 @@ def view_list(username, search_type):
                 "Volumes", entry.my_read_volumes.get_text() + "/" + entry.series_volumes.get_text()))
 
         i += 1
-

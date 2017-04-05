@@ -10,6 +10,7 @@ import ui
 
 
 class StatusCode(Enum):
+    """An Enum represented the type of result of database searches"""
     NO_RESULTS = 0
     USER_CANCELLED = 1
 
@@ -42,7 +43,7 @@ def search(credentials, search_type, search_string, display_details=True):
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param search_type: A string denoting the media type to search for, should be either "anime" or "manga"
     :param search_string: A string, the anime or manga to search for
-    :param display_details: fsdf
+    :param display_details: A boolean, whether to print the details of the found entry or whether to just return it
     :return:
     """
     if search_type not in ["anime", "manga"]:
@@ -50,6 +51,7 @@ def search(credentials, search_type, search_string, display_details=True):
 
     url = "https://myanimelist.net/api/{}/search.xml?q={}".format(search_type, search_string.replace(" ", "+"))
 
+    # send the async search request to the server
     r = ui.threaded_action(requests.get, "Searching", **{"url": url, "auth": credentials, "stream": True})
 
     if r.status_code == 204:
@@ -100,4 +102,3 @@ def search(credentials, search_type, search_string, display_details=True):
                     return matches[option - 1]
             else:
                 return StatusCode.USER_CANCELLED
-

@@ -20,6 +20,7 @@ def print_msg(msg):
 
 
 def print_failure():
+    """Print out a failure response chosen at random"""
     failure_responses = [
         "I'm sorry. I'm not sure what you mean.",
         "I didn't quite catch that.",
@@ -57,7 +58,10 @@ def authorise_user():
 
 
 def welcome():
-    """Print out the welcome message and bootstrap program functionality"""
+    """Print out the welcome message and bootstrap program functionality
+    
+    :return: True if the user authenticated successfully, False otherwise
+    """
     click.clear()
     click.echo("====== MAL Natural Language Interface ======")
     click.echo()
@@ -85,12 +89,10 @@ def get_query():
 
 
 def process_query(query):
-    """Process the user query
+    """Process the user query and carry out the requested action
 
-    :param query: A string with the user query
+    :param query: A string, the raw user query
     """
-    global credentials
-
     if query.lower() in ["exit", "quit", "leave", "bye"]:
         print_msg("Bye bye!")
         sys.exit()
@@ -105,6 +107,7 @@ def process_query(query):
     if process_result["operation"] == query_processing.OperationType.SEARCH:
         if process_result["type"] == query_processing.MediaType.ANIME:
             search.search(credentials, "anime", process_result["term"])
+
         elif process_result["type"] == query_processing.MediaType.MANGA:
             search.search(credentials, "manga", process_result["term"])
 
@@ -116,6 +119,7 @@ def process_query(query):
     elif process_result["operation"] == query_processing.OperationType.ADD:
         if process_result["type"] == query_processing.MediaType.ANIME:
             add.add_entry(credentials, "anime", process_result["term"])
+
         elif process_result["type"] == query_processing.MediaType.MANGA:
             add.add_entry(credentials, "manga", process_result["term"])
 
@@ -123,6 +127,7 @@ def process_query(query):
     elif process_result["operation"] == query_processing.OperationType.DELETE:
         if process_result["type"] == query_processing.MediaType.ANIME:
             delete.delete_entry(credentials, "anime", process_result["term"])
+
         elif process_result["type"] == query_processing.MediaType.MANGA:
             delete.delete_entry(credentials, "manga", process_result["term"])
 

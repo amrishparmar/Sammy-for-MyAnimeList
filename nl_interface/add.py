@@ -26,6 +26,7 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         raise ValueError("Invalid argument combination. Both search_string and entry cannot be None.")
 
     if entry is None and search_string is not None:
+        # search the database for the anime/manga the user wants added
         entry = search.search(credentials, entry_type, search_string, display_details=False)
 
         if entry == search.StatusCode.NO_RESULTS or entry == search.StatusCode.USER_CANCELLED:
@@ -76,8 +77,10 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         # form the xml string
         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
 
+        # prepare the url
         url = "https://myanimelist.net/api/{}list/add/{}.xml".format(entry_type, entry.id.get_text())
 
+        # send the async add request to the server
         r = ui.threaded_action(requests.get, "Adding", **{"url": url, "params": {"data": xml}, "auth": credentials})
 
         # inform the user whether the request was successful or not

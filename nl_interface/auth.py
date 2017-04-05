@@ -30,7 +30,7 @@ def validate_credentials(credentials):
     """Verify the validity of a pair of credentials
 
     :param credentials: A tuple of strings in the form (username, password)
-    :return: If successful a tuple containing strings in format (username, password) error code otherwise
+    :return: If successful, a tuple containing strings in format (username, password) error code otherwise
     """
 
     try:
