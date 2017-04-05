@@ -84,10 +84,10 @@ def process(query):
     search_syns = "|".join(synonyms.actions["search"])
     info_syns = "|".join(synonyms.terms["information"])
 
-    sm1 = re.match("(?:{}) (?:(?:for|on) (?:the )?)?(?:{}) (?:(?:for|on) (?:the )?)?(.+ ?)+".format(
+    sm1 = re.match(".*(?:{}) (?:(?:for|on) (?:the )?)?(?:{}) (?:(?:for|on) (?:the )?)?(.+ ?)+".format(
                     search_syns, info_syns), query)
-    sm2 = re.match("(?:{}) (?:(?:for|on) )?(?:the )?(.+ ?)+".format(search_syns + info_syns), query)
-    sm3 = re.match("(?:{}) (.+)".format(search_syns), query)
+    sm2 = re.match(".*(?:{}) (?:(?:for|on) )?(?:the )?(.+ ?)+".format(search_syns + info_syns), query)
+    sm3 = re.match(".*(?:{}) (.+)".format(search_syns), query)
 
     if sm1 or sm2 or sm3:
         result["operation"] = OperationType.SEARCH
