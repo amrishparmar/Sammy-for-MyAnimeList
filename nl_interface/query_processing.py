@@ -120,11 +120,13 @@ def process(query):
         result["operation"] = OperationType.ADD
         if am1:
             print("am1")
+            add_term = am1.group(1)
             result["type"] = MediaType.MANGA if am1.group(2) == "manga" else MediaType.ANIME
         elif am2:
             print("am2")
+            add_term = am2.group(1)
 
-        result["term"] = am1.group(1).strip(" '\"")
+        result["term"] = add_term.strip(" '\"")
 
     # rules for delete requests
 
@@ -137,10 +139,12 @@ def process(query):
         result["operation"] = OperationType.DELETE
         if dm1:
             print("dm1")
+            delete_term = dm1.group(1)
             result["type"] = MediaType.MANGA if dm1.group(2) == "manga" else MediaType.ANIME
         elif dm2:
             print("dm2")
+            delete_term = dm2.group(1)
 
-        result["term"] = am1.group(1).strip(" '\"")
+        result["term"] = delete_term.strip(" '\"")
 
     return result
