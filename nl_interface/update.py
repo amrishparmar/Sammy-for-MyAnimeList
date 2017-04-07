@@ -16,78 +16,76 @@ class ListSearchStatusCode(Enum):
     USER_CANCELLED = 1
 
 
-# def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=None):
-#     """Update the details of a users anime list entry
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     :param field_type: A string, the detail to update, must be either "episode", "status" or "score"
-#     :param anime_entry: A beautiful soup tag, the entry on the list to update
-#     :param new_value: An int (or string) or None, the new value to set for the field_type
-#     """
-#
-#     # the valid types of fields to update
-#     valid_field_types = ["episode", "status", "score"]
-#
-#     # ensure that the field_type is valid
-#     if field_type not in valid_field_types:
-#         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
-#
-#     # check that the anime_entry is valid
-#     if anime_entry is not None:
-#         xml_tag_format = "<{0}>{1}</{0}>"
-#         xml_field_tags = ""
-#
-#         new_status = 0
-#
-#         # if we are incrementing the episode count for an anime
-#         if field_type == "episode":
-#             # we are are incrementing the count
-#             if new_value is None:
-#                 current_ep_count = int(anime_entry.my_watched_episodes.get_text())
-#                 new_value = current_ep_count + 1
-#
-#             # check if the user has reached the last episode
-#             if new_value == int(anime_entry.series_episodes.get_text()):
-#                 click.echo("Episode {} is the last in the series.".format(new_value))
-#                 if click.confirm("Do you wish to change the status to completed?"):
-#                     xml_field_tags += xml_tag_format.format("status", "2")
-#                     new_status = 2
-#             # check if the user has a status of not watching
-#             elif anime_entry.my_status.get_text() != "1":
-#                 if click.confirm("Do you wish to change the status to watching?"):
-#                     xml_field_tags += xml_tag_format.format("status", "1")
-#                     new_status = 1
-#
-#         # set the number of episodes to number in series if status set to completed
-#         elif field_type == "status" and new_value == 2 and anime_entry.series_episodes.get_text() != "0":
-#             xml_field_tags += xml_tag_format.format("episode", anime_entry.series_episodes.get_text())
-#
-#         xml_field_tags += xml_tag_format.format(field_type, new_value)
-#
-#         # prepare xml data and url for sending to server
-#         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
-#         url = "https://myanimelist.net/api/animelist/update/{}.xml".format(anime_entry.series_animedb_id.get_text())
-#
-#         # send the request to the server, uses GET due to bug in API handling POST requests
-#         r = requests.get(url, params={"data": xml}, auth=credentials)
-#
-#         # inform the user whether the request was successful or not
-#         if r.status_code == 200:
-#             anime_title = anime_entry.series_title.get_text()
-#             updated_msg_format = 'Updated "{}" to {} "{}".'
-#             updated_msg = updated_msg_format.format(anime_title, field_type, new_value)
-#
-#             if field_type == "status":
-#                 updated_msg = updated_msg_format.format(anime_title, field_type, ANIME_STATUS_MAP[str(new_value)])
-#             # check if the status was changed
-#             elif new_status:
-#                 updated_msg += " Status set to \"{}\"".format(ANIME_STATUS_MAP[str(new_status)])
-#
-#             click.echo(updated_msg)
-#         else:
-#             click.echo("Error updating anime. Please try again.")
-#
-#     click.pause()
+def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=None):
+    """Update the details of a users anime list entry
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :param field_type: A string, the detail to update, must be either "episode", "status" or "score"
+    :param anime_entry: A beautiful soup tag, the entry on the list to update
+    :param new_value: An int (or string) or None, the new value to set for the field_type
+    """
+
+    # the valid types of fields to update
+    valid_field_types = ["episode", "status", "score"]
+
+    # ensure that the field_type is valid
+    if field_type not in valid_field_types:
+        raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
+
+    # check that the anime_entry is valid
+    if anime_entry is not None:
+        xml_tag_format = "<{0}>{1}</{0}>"
+        xml_field_tags = ""
+
+        new_status = 0
+
+        # if we are incrementing the episode count for an anime
+        if field_type == "episode":
+            # we are are incrementing the count
+            if new_value is None:
+                current_ep_count = int(anime_entry.my_watched_episodes.get_text())
+                new_value = current_ep_count + 1
+
+            # check if the user has reached the last episode
+            if new_value == int(anime_entry.series_episodes.get_text()):
+                agent.print_msg("Episode {} is the last in the series.".format(new_value))
+                if click.confirm("Sammy> Do you wish to change the status to completed?"):
+                    xml_field_tags += xml_tag_format.format("status", "2")
+                    new_status = 2
+            # check if the user has a status of not watching
+            elif anime_entry.my_status.get_text() != "1":
+                if click.confirm("Sammy> Do you wish to change the status to watching?"):
+                    xml_field_tags += xml_tag_format.format("status", "1")
+                    new_status = 1
+
+        # set the number of episodes to number in series if status set to completed
+        elif field_type == "status" and new_value == 2 and anime_entry.series_episodes.get_text() != "0":
+            xml_field_tags += xml_tag_format.format("episode", anime_entry.series_episodes.get_text())
+
+        xml_field_tags += xml_tag_format.format(field_type, new_value)
+
+        # prepare xml data and url for sending to server
+        xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
+        url = "https://myanimelist.net/api/animelist/update/{}.xml".format(anime_entry.series_animedb_id.get_text())
+
+        # send the async request to the server, uses GET due to bug in API handling POST requests
+        r = ui.threaded_action(requests.get, "Updating", **{"url": url, "params": {"data": xml}, "auth": credentials})
+
+        # inform the user whether the request was successful or not
+        if r.status_code == 200:
+            anime_title = anime_entry.series_title.get_text()
+            updated_msg_format = 'I ahve updated "{}" to {} "{}".'
+            updated_msg = updated_msg_format.format(anime_title, field_type, new_value)
+
+            if field_type == "status":
+                updated_msg = updated_msg_format.format(anime_title, field_type, ANIME_STATUS_MAP[str(new_value)])
+            # check if the status was changed
+            elif new_status:
+                updated_msg += " Status set to \"{}\"".format(ANIME_STATUS_MAP[str(new_status)])
+
+            agent.print_msg(updated_msg)
+        else:
+            agent.print_msg("There was an error updating anime. Please try again.")
 
 
 # def increment_episode_count(credentials):
@@ -329,7 +327,7 @@ class ListSearchStatusCode(Enum):
 #     if result is not None:
 #         echo_entry_title(result)
 #         status = helpers.get_status_choice_from_user("manga")
-#
+#`
 #         _update_manga_list_entry(credentials, "status", result, status)
 
 
@@ -433,7 +431,7 @@ def view_list(username, search_type):
     i = 1
     for entry in soup.find_all(search_type):
         # use a different layout depending on whether it is anime or manga
-        layout_string = "{}> {}" + ("\n    - {}: {}" * (4 if search_type == "anime" else 5))
+        layout_string = "{}> {}" + "\n    - {}: {}" * (4 if search_type == "anime" else 5)
 
         if search_type == "anime":
             click.echo(layout_string.format(
