@@ -115,6 +115,9 @@ def process_query(query):
     elif process_result["operation"] == query_processing.OperationType.UPDATE:
         pass
 
+    elif process_result["operation"] == query_processing.OperationType.UPDATE_INCREMENT:
+        pass
+
     # add queries
     elif process_result["operation"] == query_processing.OperationType.ADD:
         if process_result["type"] == query_processing.MediaType.ANIME:

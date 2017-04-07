@@ -10,8 +10,17 @@ class OperationType(Enum):
     """An Enum represented the type of operation the user wants to perform"""
     SEARCH = 0
     UPDATE = 1
-    ADD = 2
-    DELETE = 3
+    UPDATE_INCREMENT = 2
+    ADD = 3
+    DELETE = 4
+
+
+class UpdateModifier(Enum):
+    STATUS = 0
+    SCORE = 1
+    EPISODE = 2
+    CHAPTER = 3
+    VOLUME = 4
 
 
 class MediaType(Enum):
@@ -71,6 +80,7 @@ def process(query):
     result = {"operation": None,
               "type": MediaType.ANIME,
               "modifier": None,
+              "value": None,
               "extra": None}
 
     # basic implementation of responding to hello
@@ -101,6 +111,7 @@ def process(query):
         elif sm3:
             search_terms = strip_info(sm3.group(1))
             print("sm3")
+
         search_terms_stripped = search_terms.strip(" '\"")
         search_terms_stripped_tuple = strip_type(search_terms_stripped)
 
@@ -146,5 +157,26 @@ def process(query):
             delete_term = dm2.group(1)
 
         result["term"] = delete_term.strip(" '\"")
+
+    increment_syns = "|".join(synonyms.actions["increment"])
+
+    inc1 = re.match(".*(?:{}) (?:the )?(?:(episode|chapter|volume)s? )?(?:count )?(?:for |on )?(.+ ?)+?".format(
+                    increment_syns), query)
+
+    if inc1:
+        result["operation"] = OperationType.UPDATE_INCREMENT
+        result["type"] = MediaType.MANGA
+        increment_term = inc1.group(2)
+
+        if inc1.group(1) == "chapter":
+            modifier_term = UpdateModifier.CHAPTER
+        elif inc1.group(1) == "volume":
+            modifier_term = UpdateModifier.VOLUME
+        else:
+            modifier_term = UpdateModifier.EPISODE
+            result["type"] = MediaType.ANIME
+
+        result["modifier"] = modifier_term
+        result["term"] = increment_term
 
     return result
