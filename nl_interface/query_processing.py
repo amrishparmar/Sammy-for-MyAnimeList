@@ -78,9 +78,18 @@ def strip_type(term):
 
 
 def determine_action(query):
+    """Determine the intended action of the user
+     
+     Eliminates the cases where a string may match keywords from multiple action categories
+    
+    :param query: A string, the normalised user query
+    :return: An OperationType enum, the action to perform
+    """
     action_term_orders = []
 
+    # loop over all of the action categories
     for action in synonyms.actions.keys():
+        # loop over all of the synonyms for that action until we find a match
         for syn in synonyms.actions[action]:
             try:
                 index = query.index(syn)
@@ -89,12 +98,12 @@ def determine_action(query):
             except ValueError:
                 continue
 
-    if not action_term_orders:
-        # the query did not match any of our known keywords
-        return None
-    else:
+    if action_term_orders:
+        # sort them by index first, then alphabetically
         action_term_orders = sorted(action_term_orders, key=lambda x: (x[1], x[0]))
         if len(action_term_orders) >= 2:
+            # check if the two lowest indices are the same
+            # this will happen if the same keyword exists in two categories
             if action_term_orders[0][1] == action_term_orders[1][1]:
                 if action_term_orders[0][0] == "delete" and action_term_orders[1][0] == "search":
                     return string_to_operation_map["delete"]
@@ -115,6 +124,7 @@ def process(query):
 
     result = {"operation": None,
               "type": MediaType.ANIME,
+              "term": "",
               "modifier": None,
               "value": None,
               "extra": None}
@@ -168,10 +178,9 @@ def process(query):
         am1 = re.match(".*(?:{}) (.+?)(?= (?:to )?(?:my )?(anime|manga)? ?list)".format(add_syns), query)
         am2 = re.match(".*(?:{}) (.+)".format(add_syns), query)
 
-        add_term = ""
-
         if am1 or am2:
             result["operation"] = OperationType.ADD
+            add_term = ""
             if am1:
                 print("am1")
                 add_term = am1.group(1)
@@ -185,13 +194,13 @@ def process(query):
     elif action == OperationType.DELETE:
         delete_syns = "|".join(synonyms.actions["delete"])
 
-        dm1 = re.match(".*(?:{}) (.+?)(?: (?:off )?(?:from )?(?:my )?(anime|manga)? ?(?:list))".format(delete_syns), query)
+        dm1 = re.match(".*(?:{}) (.+?)(?: (?:off )?(?:from )?(?:my )?(anime|manga)? ?(?:list))".format(delete_syns),
+                       query)
         dm2 = re.match(".*(?:{}) (.+)".format(delete_syns), query)
-
-        delete_term = ""
 
         if dm1 or dm2:
             result["operation"] = OperationType.DELETE
+            delete_term = ""
             if dm1:
                 print("dm1")
                 delete_term = dm1.group(1)
@@ -210,18 +219,34 @@ def process(query):
 
         if inc1:
             result["operation"] = OperationType.UPDATE_INCREMENT
-            result["type"] = MediaType.MANGA
-            increment_term = inc1.group(2)
 
             if inc1.group(1) == "chapter":
                 modifier_term = UpdateModifier.CHAPTER
+                result["type"] = MediaType.MANGA
             elif inc1.group(1) == "volume":
                 modifier_term = UpdateModifier.VOLUME
+                result["type"] = MediaType.MANGA
             else:
                 modifier_term = UpdateModifier.EPISODE
-                result["type"] = MediaType.ANIME
 
             result["modifier"] = modifier_term
-            result["term"] = increment_term
+            result["term"] = inc1.group(2).strip(" '\"")
+
+        update_syns = "|".join(synonyms.actions["update"])
+
+        score_syns = "|".join(synonyms.terms["score"])
+
+        scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
+                         ")?(?:({1}) )?(?:(?:to|of) )?(\d)".format(update_syns, score_syns, "anime|manga"), query)
+
+        if scu1:
+            result["operation"] = OperationType.UPDATE
+
+            if scu1.group(2) == "manga" or scu1.group(4) == "manga":
+                result["type"] = MediaType.MANGA
+
+            result["modifier"] = UpdateModifier.SCORE
+            result["term"] = scu1.group(3).strip(" '\"")
+            result["value"] = scu1.group(6)
 
     return result

@@ -113,7 +113,16 @@ def process_query(query):
 
     # update queries
     elif process_result["operation"] == query_processing.OperationType.UPDATE:
-        pass
+        if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
+            pass
+        elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
+            pass
+        elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
+            pass
+        elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
+            pass
+        elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
+            pass
 
     elif process_result["operation"] == query_processing.OperationType.UPDATE_INCREMENT:
         pass
