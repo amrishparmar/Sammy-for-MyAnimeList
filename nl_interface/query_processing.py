@@ -114,6 +114,12 @@ def determine_action(query):
                 if action_term_orders[0][0] == "increment" and action_term_orders[1][0] == "update":
                     return OperationType.UPDATE
 
+                if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "view_list":
+                    if nltk.word_tokenize(query)[-1] == "list":
+                        return OperationType.VIEW_LIST
+                    else:
+                        return OperationType.SEARCH
+
         elif len(action_term_orders) == 3:
             if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "update" and action_term_orders[2][0] == "view_list":
                 if nltk.word_tokenize(query)[-1] == "list":
@@ -225,7 +231,7 @@ def process(query):
         increment_syns = "|".join(synonyms.actions["increment"])
 
         inc1 = re.match(".*(?:{}) (?:the )?(?:(episode|chapter|volume)s? )?(?:count )?(?:for |on )?(.+ ?)+?".format(
-                            increment_syns), query)
+                        increment_syns), query)
 
         if inc1:
             result["operation"] = OperationType.UPDATE_INCREMENT

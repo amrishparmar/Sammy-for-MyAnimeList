@@ -74,7 +74,7 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
         # inform the user whether the request was successful or not
         if r.status_code == 200:
             anime_title = anime_entry.series_title.get_text()
-            updated_msg_format = 'I ahve updated "{}" to {} "{}".'
+            updated_msg_format = 'I have updated "{}" to {} "{}".'
             updated_msg = updated_msg_format.format(anime_title, field_type, new_value)
 
             if field_type == "status":

@@ -9,6 +9,7 @@ import delete
 import query_processing
 import search
 import ui
+import update
 
 # the pair of user credentials
 credentials = "default", "default"
@@ -98,7 +99,7 @@ def process_query(query):
         sys.exit()
 
     process_result = query_processing.process(query)
-    print_msg(str(process_result))
+    print_msg(str(process_result)) # print out the dictionary for debug purposes
 
     if process_result["extra"] is not None:
         print_msg(process_result["extra"].format(credentials[0]))
@@ -145,7 +146,11 @@ def process_query(query):
             delete.delete_entry(credentials, "manga", process_result["term"])
 
     elif process_result["operation"] == query_processing.OperationType.VIEW_LIST:
-        pass
+        if process_result["type"] == query_processing.MediaType.ANIME:
+            update.view_list(credentials[0], "anime")
+
+        elif process_result["type"] == query_processing.MediaType.MANGA:
+            update.view_list(credentials[0], "manga")
 
     # if the system failed to understand the query
     elif process_result["extra"] is None:
