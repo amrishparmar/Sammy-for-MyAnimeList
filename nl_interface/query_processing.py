@@ -237,7 +237,7 @@ def process(query):
         score_syns = "|".join(synonyms.terms["score"])
 
         scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
-                         ")?(?:({1}) )?(?:(?:to|of) )?(\d)".format(update_syns, score_syns, "anime|manga"), query)
+                         ")?(?:({1}) )?(?:(?:to|of) )?(\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
 
         if scu1:
             result["operation"] = OperationType.UPDATE
@@ -247,6 +247,6 @@ def process(query):
 
             result["modifier"] = UpdateModifier.SCORE
             result["term"] = scu1.group(3).strip(" '\"")
-            result["value"] = scu1.group(6)
+            result["value"] = scu1.group(6) if 1 <= int(scu1.group(6)) <= 10 else None
 
     return result

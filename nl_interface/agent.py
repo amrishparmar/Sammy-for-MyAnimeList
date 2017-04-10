@@ -116,7 +116,8 @@ def process_query(query):
         if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
             pass
         elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
-            pass
+            if process_result["value"] is None:
+                print_msg("I'm sorry, but the new score value must be between 1 and 10.")
         elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
             pass
         elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
