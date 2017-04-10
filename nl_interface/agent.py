@@ -116,18 +116,32 @@ def process_query(query):
     elif process_result["operation"] == query_processing.OperationType.UPDATE:
         if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
             pass
+
         elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
             if process_result["value"] is None:
                 print_msg("I'm sorry, but the new score value must be between 1 and 10.")
+            else:
+                pass
+
         elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
             pass
+
         elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
             pass
+
         elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
             pass
 
     elif process_result["operation"] == query_processing.OperationType.UPDATE_INCREMENT:
-        pass
+        if process_result["type"] == query_processing.MediaType.ANIME:
+            update.update_anime_list_entry(credentials, "episode", process_result["term"])
+
+        elif process_result["type"] == query_processing.MediaType.MANGA:
+            if process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
+                update.update_manga_list_entry(credentials, "chapter", process_result["term"])
+
+            elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
+                update.update_manga_list_entry(credentials, "volume", process_result["term"])
 
     # add queries
     elif process_result["operation"] == query_processing.OperationType.ADD:

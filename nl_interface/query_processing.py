@@ -8,7 +8,7 @@ import synonyms
 
 
 class OperationType(Enum):
-    """An Enum represented the type of operation the user wants to perform"""
+    """An Enum representing the type of operation the user wants to perform"""
     SEARCH = 0
     UPDATE = 1
     UPDATE_INCREMENT = 2
@@ -18,6 +18,7 @@ class OperationType(Enum):
 
 
 class UpdateModifier(Enum):
+    """An Enum representing the the type of field the user wants to change"""
     STATUS = 0
     SCORE = 1
     EPISODE = 2
@@ -26,22 +27,15 @@ class UpdateModifier(Enum):
 
 
 class MediaType(Enum):
-    """An Enum represented the type of media that an operation applies to"""
+    """An Enum representing the type of media that an operation applies to"""
     ANIME = 0
     MANGA = 1
-
-string_to_operation_map = {
-    "search": OperationType.SEARCH,
-    "update": OperationType.UPDATE,
-    "increment": OperationType.UPDATE_INCREMENT,
-    "add": OperationType.ADD,
-    "delete": OperationType.DELETE,
-    "view_list": OperationType.VIEW_LIST
-}
 
 
 def normalise(query):
     """Normalise a query for consistent string analysis
+    
+    Convert the query to lowercase and remove punctuation from the right-hand side of the string
 
     :param query: A string, the user query
     :return: A string, the normalised user query
@@ -126,6 +120,15 @@ def determine_action(query):
                     return OperationType.VIEW_LIST
                 else:
                     return OperationType.SEARCH
+
+        string_to_operation_map = {
+            "search": OperationType.SEARCH,
+            "update": OperationType.UPDATE,
+            "increment": OperationType.UPDATE_INCREMENT,
+            "add": OperationType.ADD,
+            "delete": OperationType.DELETE,
+            "view_list": OperationType.VIEW_LIST
+        }
 
         return string_to_operation_map[action_term_orders[0][0]]
 

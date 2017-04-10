@@ -31,7 +31,6 @@ def threaded_action(action, msg="Loading", *args, **kwds):
         loading_animation(msg)
 
     click.echo("\r{}...Done".format(msg))
-    click.echo()
 
     return async_result.get()
 

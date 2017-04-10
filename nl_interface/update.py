@@ -16,12 +16,12 @@ class ListSearchStatusCode(Enum):
     USER_CANCELLED = 1
 
 
-def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=None):
+def update_anime_list_entry(credentials, field_type, search_string, new_value=None):
     """Update the details of a users anime list entry
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param field_type: A string, the detail to update, must be either "episode", "status" or "score"
-    :param anime_entry: A beautiful soup tag, the entry on the list to update
+    :param search_string: 
     :param new_value: An int (or string) or None, the new value to set for the field_type
     """
 
@@ -32,8 +32,13 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
     if field_type not in valid_field_types:
         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
+    anime_entry = search_list(credentials[0], "anime", search_string)
+
+    if anime_entry == ListSearchStatusCode.USER_CANCELLED:
+        agent.print_msg("I have cancelled the operation. Nothing was changed")
+
     # check that the anime_entry is valid
-    if anime_entry is not None:
+    elif anime_entry != ListSearchStatusCode.NO_RESULTS:
         xml_tag_format = "<{0}>{1}</{0}>"
         xml_field_tags = ""
 
@@ -85,7 +90,7 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
 
             agent.print_msg(updated_msg)
         else:
-            agent.print_msg("There was an error updating anime. Please try again.")
+            agent.print_msg("There was an error updating the anime. Please try again.")
 
 
 # def increment_episode_count(credentials):
@@ -150,93 +155,93 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
 #         _update_anime_list_entry(credentials, "status", result, status)
 
 
-# def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=None):
-#     """Increment the chapter or volume count of a manga on the user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     :param field_type: A string, the detail to update, must be either "chapter", "volume", "status" or "score"
-#     :param manga_entry: A beautiful soup tag, the entry on the list to update
-#     :param new_value: An int (or string) or None, the new value to set for the field_type
-#     """
-#
-#     valid_field_types = ["chapter", "volume", "status", "score"]
-#
-#     # ensure that the field_type is valid
-#     if field_type not in valid_field_types:
-#         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
-#
-#     # check the searching the list returned a valid result
-#     if manga_entry is not None:
-#         manga_title = manga_entry.series_title.get_text()
-#
-#         xml_tag_format = "<{0}>{1}</{0}>"
-#         xml_field_tags = ""
-#
-#         new_status = 0
-#
-#         # if we are changing the chapter or volume count for a manga
-#         if field_type in ["chapter", "volume"]:
-#             # we are incrementing the count
-#             if new_value is None:
-#                 if field_type == "chapter":
-#                     current_value = int(manga_entry.my_read_chapters.get_text())
-#                 else:
-#                     current_value = int(manga_entry.my_read_volumes.get_text())
-#                 new_value = current_value + 1
-#
-#             series_chapters = int(manga_entry.series_chapters.get_text())
-#             series_volumes = int(manga_entry.series_volumes.get_text())
-#
-#             # check if the user has reached either the last chapter or last volume
-#             if (new_value == series_chapters and field_type == "chapter") or \
-#                (new_value == series_volumes and field_type == "volume"):
-#                 click.echo("{} {} is the last in the series.".format(field_type.title(), new_value))
-#                 if click.confirm("Do you wish to change the status to completed?"):
-#                     # set both the chapter and volume counts to the number in the series
-#                     xml_field_tags += xml_tag_format.format("status", "2")
-#                     xml_field_tags += xml_tag_format.format("chapter", series_chapters)
-#                     xml_field_tags += xml_tag_format.format("volume", series_volumes)
-#                     new_status = 2
-#             # check if the user has a status of not reading
-#             elif manga_entry.my_status.get_text() != "1":
-#                 if click.confirm("Do you wish to change the status to watching?"):
-#                     xml_field_tags += xml_tag_format.format("status", "1")
-#                     new_status = 1
-#
-#         # set the number of chapters and volumes to number in series if status set to completed
-#         elif field_type == "status" and new_value == 2:
-#             if manga_entry.series_chapters.get_text() != 0:
-#                 xml_field_tags += xml_tag_format.format("chapter", manga_entry.series_chapters.get_text())
-#             if manga_entry.series_volumes.get_text() != 0:
-#                 xml_field_tags += xml_tag_format.format("volume", manga_entry.series_volumes.get_text())
-#
-#         if new_status != 2:
-#             xml_field_tags += xml_tag_format.format(field_type, new_value)
-#
-#         # prepare xml data and url for sending to server
-#         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
-#         url = "https://myanimelist.net/api/mangalist/update/{}.xml".format(manga_entry.series_mangadb_id.get_text())
-#
-#         # send the request to the server, uses GET due to bug in API handling POST requests
-#         r = requests.get(url, params={"data": xml}, auth=credentials)
-#
-#         # inform the user whether the request was successful or not
-#         if r.status_code == 200:
-#             updated_msg_format = "Updated \"{}\" to {} {}."
-#
-#             updated_msg = updated_msg_format.format(manga_title, field_type, new_value)
-#
-#             if field_type == "status":
-#                 updated_msg = updated_msg_format.format(manga_title, field_type, MANGA_STATUS_MAP[str(new_value)])
-#             # check if the status was changed
-#             elif new_status:
-#                 updated_msg += " Status set to \"{}\"".format(MANGA_STATUS_MAP[str(new_status)])
-#
-#             click.echo(updated_msg)
-#         else:
-#             click.echo("Error updating manga. Please try again.")
-#
-#     click.pause()
+def update_manga_list_entry(credentials, field_type, search_string, new_value=None):
+    """Increment the chapter or volume count of a manga on the user's list
+
+    :param credentials: A tuple containing valid MAL account details in the format (username, password)
+    :param field_type: A string, the detail to update, must be either "chapter", "volume", "status" or "score"
+    :param manga_entry: A beautiful soup tag, the entry on the list to update
+    :param new_value: An int (or string) or None, the new value to set for the field_type
+    """
+
+    valid_field_types = ["chapter", "volume", "status", "score"]
+
+    # ensure that the field_type is valid
+    if field_type not in valid_field_types:
+        raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
+
+    manga_entry = search_list(credentials[0], "manga", search_string)
+
+    # check the searching the list returned a valid result
+    if manga_entry is not None:
+        manga_title = manga_entry.series_title.get_text()
+
+        xml_tag_format = "<{0}>{1}</{0}>"
+        xml_field_tags = ""
+
+        new_status = 0
+
+        # if we are changing the chapter or volume count for a manga
+        if field_type in ["chapter", "volume"]:
+            # we are incrementing the count
+            if new_value is None:
+                if field_type == "chapter":
+                    current_value = int(manga_entry.my_read_chapters.get_text())
+                else:
+                    current_value = int(manga_entry.my_read_volumes.get_text())
+                new_value = current_value + 1
+
+            series_chapters = int(manga_entry.series_chapters.get_text())
+            series_volumes = int(manga_entry.series_volumes.get_text())
+
+            # check if the user has reached either the last chapter or last volume
+            if (new_value == series_chapters and field_type == "chapter") or \
+               (new_value == series_volumes and field_type == "volume"):
+                agent.print_msg("{} {} is the last in the series.".format(field_type.title(), new_value))
+                if click.confirm("Sammy> Do you wish to change the status to completed?"):
+                    # set both the chapter and volume counts to the number in the series
+                    xml_field_tags += xml_tag_format.format("status", "2")
+                    xml_field_tags += xml_tag_format.format("chapter", series_chapters)
+                    xml_field_tags += xml_tag_format.format("volume", series_volumes)
+                    new_status = 2
+            # check if the user has a status of not reading
+            elif manga_entry.my_status.get_text() != "1":
+                if click.confirm("Sammy> Do you wish to change the status to watching?"):
+                    xml_field_tags += xml_tag_format.format("status", "1")
+                    new_status = 1
+
+        # set the number of chapters and volumes to number in series if status set to completed
+        elif field_type == "status" and new_value == 2:
+            if manga_entry.series_chapters.get_text() != 0:
+                xml_field_tags += xml_tag_format.format("chapter", manga_entry.series_chapters.get_text())
+            if manga_entry.series_volumes.get_text() != 0:
+                xml_field_tags += xml_tag_format.format("volume", manga_entry.series_volumes.get_text())
+
+        if new_status != 2:
+            xml_field_tags += xml_tag_format.format(field_type, new_value)
+
+        # prepare xml data and url for sending to server
+        xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
+        url = "https://myanimelist.net/api/mangalist/update/{}.xml".format(manga_entry.series_mangadb_id.get_text())
+
+        # send the async request to the server, uses GET due to bug in API handling POST requests
+        r = ui.threaded_action(requests.get, "Updating", **{"url": url, "params": {"data": xml}, "auth": credentials})
+
+        # inform the user whether the request was successful or not
+        if r.status_code == 200:
+            updated_msg_format = "Updated \"{}\" to {} {}."
+
+            updated_msg = updated_msg_format.format(manga_title, field_type, new_value)
+
+            if field_type == "status":
+                updated_msg = updated_msg_format.format(manga_title, field_type, MANGA_STATUS_MAP[str(new_value)])
+            # check if the status was changed
+            elif new_status:
+                updated_msg += " Status set to \"{}\"".format(MANGA_STATUS_MAP[str(new_status)])
+
+            agent.print_msg(updated_msg)
+        else:
+            agent.print_msg("There was an error updating the manga. Please try again.")
 
 
 # def increment_chapter_count(credentials):
@@ -404,7 +409,7 @@ def search_list(username, search_type, search_string):
         if option != num_results + 1:
             return matches[option - 1]
         else:
-            return
+            return ListSearchStatusCode.USER_CANCELLED
 
 
 def view_list(username, search_type):
