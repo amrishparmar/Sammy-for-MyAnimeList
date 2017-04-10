@@ -9,7 +9,14 @@ actions = {
     "update": ["update", "change", "amend", "give", "rate"],
     "increment": ["increment", "increase", "update"],
     "add": ["add", "append"],
-    "delete": ["delete", "remove", "eliminate", "get rid of", "take"]
+    "delete": ["delete", "remove", "eliminate", "get rid of", "take"],
+    "view_list": ["get me", "get",
+                  "give me", "give",
+                  "show me", "show",
+                  "look at", "look",
+                  "what's on", "whats on",
+                  "see",
+                  "view"]
 }
 
 terms = {

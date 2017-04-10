@@ -1,5 +1,6 @@
 from enum import Enum
 import re
+import string
 
 import nltk
 
@@ -13,6 +14,7 @@ class OperationType(Enum):
     UPDATE_INCREMENT = 2
     ADD = 3
     DELETE = 4
+    VIEW_LIST = 5
 
 
 class UpdateModifier(Enum):
@@ -33,7 +35,8 @@ string_to_operation_map = {
     "update": OperationType.UPDATE,
     "increment": OperationType.UPDATE_INCREMENT,
     "add": OperationType.ADD,
-    "delete": OperationType.DELETE
+    "delete": OperationType.DELETE,
+    "view_list": OperationType.VIEW_LIST
 }
 
 
@@ -43,7 +46,7 @@ def normalise(query):
     :param query: A string, the user query
     :return: A string, the normalised user query
     """
-    return query.lower()
+    return query.lower().rstrip(string.punctuation)
 
 
 def strip_info(term):
@@ -101,15 +104,22 @@ def determine_action(query):
     if action_term_orders:
         # sort them by index first, then alphabetically
         action_term_orders = sorted(action_term_orders, key=lambda x: (x[1], x[0]))
-        if len(action_term_orders) >= 2:
+        if len(action_term_orders) == 2:
             # check if the two lowest indices are the same
             # this will happen if the same keyword exists in two categories
             if action_term_orders[0][1] == action_term_orders[1][1]:
                 if action_term_orders[0][0] == "delete" and action_term_orders[1][0] == "search":
-                    return string_to_operation_map["delete"]
+                    return OperationType.DELETE
 
                 if action_term_orders[0][0] == "increment" and action_term_orders[1][0] == "update":
-                    return string_to_operation_map["update"]
+                    return OperationType.UPDATE
+
+        elif len(action_term_orders) == 3:
+            if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "update" and action_term_orders[2][0] == "view_list":
+                if nltk.word_tokenize(query)[-1] == "list":
+                    return OperationType.VIEW_LIST
+                else:
+                    return OperationType.SEARCH
 
         return string_to_operation_map[action_term_orders[0][0]]
 
@@ -247,6 +257,17 @@ def process(query):
 
             result["modifier"] = UpdateModifier.SCORE
             result["term"] = scu1.group(3).strip(" '\"")
-            result["value"] = scu1.group(6) if 1 <= int(scu1.group(6)) <= 10 else None
+            result["value"] = scu1.group(6) if 0 < int(scu1.group(6)) <= 10 else None
+
+    elif action == OperationType.VIEW_LIST:
+        viewlist_syns = "|".join(synonyms.actions["view_list"])
+
+        vl1 = re.search("(?:{}) (?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
+
+        if vl1:
+            result["operation"] = OperationType.VIEW_LIST
+
+            if vl1.group(1) == "manga":
+                result["type"] = MediaType.MANGA
 
     return result

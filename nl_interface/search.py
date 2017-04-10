@@ -52,7 +52,8 @@ def search(credentials, search_type, search_string, display_details=True):
     url = "https://myanimelist.net/api/{}/search.xml?q={}".format(search_type, search_string.replace(" ", "+"))
 
     # send the async search request to the server
-    r = ui.threaded_action(requests.get, "Searching", **{"url": url, "auth": credentials, "stream": True})
+    r = ui.threaded_action(requests.get, "Searching for {}".format(search_string),
+                           **{"url": url, "auth": credentials, "stream": True})
 
     if r.status_code == 204:
         agent.print_msg("I'm sorry I could not find any results for \"{}\".".format(search_string))

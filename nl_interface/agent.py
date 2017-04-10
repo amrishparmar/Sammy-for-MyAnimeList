@@ -144,6 +144,9 @@ def process_query(query):
         elif process_result["type"] == query_processing.MediaType.MANGA:
             delete.delete_entry(credentials, "manga", process_result["term"])
 
+    elif process_result["operation"] == query_processing.OperationType.VIEW_LIST:
+        pass
+
     # if the system failed to understand the query
     elif process_result["extra"] is None:
         print_failure()
