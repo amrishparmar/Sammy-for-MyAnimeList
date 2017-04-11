@@ -6,9 +6,9 @@ import click
 import add
 import auth
 import delete
+import network
 import query_processing
 import search
-import ui
 import update
 
 # the pair of user credentials
@@ -31,6 +31,10 @@ def print_failure():
     print_msg(random.choice(failure_responses))
 
 
+def print_connection_error_msg():
+    print_msg("Oh no, there was an error connecting to MAL. Please check your internet connection")
+
+
 def authorise_user():
     """Get a pair of credentials from the user
 
@@ -40,14 +44,14 @@ def authorise_user():
     while True:
         credentials = auth.get_user_credentials("Please enter your username", "And now your password")
 
-        result = ui.threaded_action(auth.validate_credentials, "Authenticating", **{"credentials": credentials})
+        result = auth.validate_credentials(credentials)
 
-        if result is not auth.StatusCode.SUCCESS:
-            if result == auth.StatusCode.CONNECTION_ERROR:
-                print_msg("Oh no, there was an error connecting to MAL. Maybe check your internet connection")
-            elif result == auth.StatusCode.UNAUTHORISED:
+        if result is not network.StatusCode.SUCCESS:
+            if result == network.StatusCode.CONNECTION_ERROR:
+                print_connection_error_msg()
+            elif result == network.StatusCode.UNAUTHORISED:
                 print_msg("Something was wrong with the username or password :(")
-            elif result == auth.StatusCode.OTHER_ERROR:
+            elif result == network.StatusCode.OTHER_ERROR:
                 print_msg("Some kind of error has occurred :'(")
 
             if click.confirm("Sammy> Do you want to try again?"):
@@ -114,23 +118,45 @@ def process_query(query):
 
     # update queries
     elif process_result["operation"] == query_processing.OperationType.UPDATE:
-        if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
-            pass
-
-        elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
-            if process_result["value"] is None:
-                print_msg("I'm sorry, but the new score value must be between 1 and 10.")
-            else:
+        if process_result["type"] == query_processing.MediaType.ANIME:
+            if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
                 pass
 
-        elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
-            pass
+            elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
+                if process_result["value"] is None:
+                    print_msg("I'm sorry, but the new score value must be between 1 and 10.")
+                else:
+                    update.update_anime_list_entry(credentials, "score", process_result["term"],
+                                                   process_result["value"])
 
-        elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
-            pass
+            elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
+                pass
 
-        elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
-            pass
+            elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
+                pass
+
+            elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
+                pass
+
+        elif process_result["type"] == query_processing.MediaType.MANGA:
+            if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
+                pass
+
+            elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
+                if process_result["value"] is None:
+                    print_msg("I'm sorry, but the new score value must be between 1 and 10.")
+                else:
+                    update.update_manga_list_entry(credentials, "score", process_result["term"],
+                                                   process_result["value"])
+
+            elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
+                pass
+
+            elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
+                pass
+
+            elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
+                pass
 
     elif process_result["operation"] == query_processing.OperationType.UPDATE_INCREMENT:
         if process_result["type"] == query_processing.MediaType.ANIME:

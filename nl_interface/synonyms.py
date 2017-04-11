@@ -6,7 +6,7 @@ actions = {
                "obtain",
                "give me some", "give some", "give me",
                "send", "send me"],
-    "update": ["update", "change", "amend", "give", "rate"],
+    "update": ["update", "change", "amend", "give", "rate", "set"],
     "increment": ["increment", "increase", "update"],
     "add": ["add", "append"],
     "delete": ["delete", "remove", "eliminate", "get rid of", "take"],

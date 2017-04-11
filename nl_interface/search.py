@@ -6,6 +6,7 @@ import requests
 from bs4 import BeautifulSoup
 
 import agent
+import network
 import ui
 
 
@@ -33,6 +34,7 @@ def display_entry_details(entry):
             if detail_string is not None:
                 # unescape html entities and remove break tags
                 detail_string = html.unescape(detail_string).replace("<br />", "")
+                detail_string = detail_string.replace("[i]", "").replace("[/i]", "")
 
             click.echo("{}: {}".format(detail_name, detail_string))
 
@@ -52,8 +54,12 @@ def search(credentials, search_type, search_string, display_details=True):
     url = "https://myanimelist.net/api/{}/search.xml?q={}".format(search_type, search_string.replace(" ", "+"))
 
     # send the async search request to the server
-    r = ui.threaded_action(requests.get, "Searching for {}".format(search_string),
-                           **{"url": url, "auth": credentials, "stream": True})
+    r = ui.threaded_action(network.make_request, "Searching for {}".format(search_string), request=requests.get,
+                           url=url, auth=credentials, stream=True)
+
+    if r == network.StatusCode.CONNECTION_ERROR:
+        agent.print_connection_error_msg()
+        return r
 
     if r.status_code == 204:
         agent.print_msg("I'm sorry I could not find any results for \"{}\".".format(search_string))

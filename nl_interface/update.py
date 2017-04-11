@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 
 import agent
-import helpers
 from constants import ANIME_STATUS_MAP, ANIME_TYPE_MAP, MANGA_STATUS_MAP, MANGA_TYPE_MAP
+import network
 import ui
 
 
@@ -35,10 +35,13 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
     anime_entry = search_list(credentials[0], "anime", search_string)
 
     if anime_entry == ListSearchStatusCode.USER_CANCELLED:
-        agent.print_msg("I have cancelled the operation. Nothing was changed")
+        agent.print_msg("I have cancelled the operation. Nothing was changed.")
 
-    # check that the anime_entry is valid
-    elif anime_entry != ListSearchStatusCode.NO_RESULTS:
+    elif anime_entry == network.StatusCode.CONNECTION_ERROR or anime_entry == network.StatusCode.OTHER_ERROR \
+            or anime_entry == ListSearchStatusCode.NO_RESULTS:
+        return
+
+    else:
         xml_tag_format = "<{0}>{1}</{0}>"
         xml_field_tags = ""
 
@@ -74,7 +77,12 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
         url = "https://myanimelist.net/api/animelist/update/{}.xml".format(anime_entry.series_animedb_id.get_text())
 
         # send the async request to the server, uses GET due to bug in API handling POST requests
-        r = ui.threaded_action(requests.get, "Updating", **{"url": url, "params": {"data": xml}, "auth": credentials})
+        r = ui.threaded_action(network.make_request, msg="Updating", request=requests.get, url=url,
+                               params={"data": xml}, auth=credentials)
+
+        if r == network.StatusCode.CONNECTION_ERROR:
+            agent.print_connection_error_msg()
+            return
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
@@ -93,74 +101,12 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
             agent.print_msg("There was an error updating the anime. Please try again.")
 
 
-# def increment_episode_count(credentials):
-#     """Search for and increment the episode count by 1 for an anime on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     """
-#     # prompt the user to search their list for the entry
-#     result = search_list(credentials[0], "anime")
-#
-#     if result is not None:
-#         echo_entry_title(result)
-#         _update_anime_list_entry(credentials, "episode", result)
-
-
-# def set_episode_count(credentials):
-#     """Search for and set the episode count for an anime on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     """
-#     # prompt the user to search their list for the entry
-#     result = search_list(credentials[0], "anime")
-#
-#     # check that the search returned a valid result
-#     if result is not None:
-#         echo_entry_title(result)
-#         episodes = helpers.get_new_count_from_user("episode")
-#         if episodes is not None:
-#             _update_anime_list_entry(credentials, "episode", result, episodes)
-
-
-# def set_anime_score(credentials):
-#     """Search for and set the score for an anime on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     :return: None, when the score is updated
-#     """
-#     # prompt the user to search their list for the entry
-#     result = search_list(credentials[0], "anime")
-#
-#     # check that the search returned a valid result
-#     if result is not None:
-#         echo_entry_title(result)
-#         score = helpers.get_score_choice_from_user()
-#         if score is not None:
-#             _update_anime_list_entry(credentials, "score", result, score)
-
-
-# def set_anime_status(credentials):
-#     """Search for and set the status for an anime on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     """
-#     # prompt the user to search their list for the entry
-#     result = search_list(credentials[0], "anime")
-#
-#     # check that the search returned a valid result
-#     if result is not None:
-#         echo_entry_title(result)
-#         status = helpers.get_status_choice_from_user("anime")
-#
-#         _update_anime_list_entry(credentials, "status", result, status)
-
-
 def update_manga_list_entry(credentials, field_type, search_string, new_value=None):
     """Increment the chapter or volume count of a manga on the user's list
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param field_type: A string, the detail to update, must be either "chapter", "volume", "status" or "score"
-    :param manga_entry: A beautiful soup tag, the entry on the list to update
+    :param search_string: 
     :param new_value: An int (or string) or None, the new value to set for the field_type
     """
 
@@ -172,8 +118,15 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
 
     manga_entry = search_list(credentials[0], "manga", search_string)
 
+    if manga_entry == ListSearchStatusCode.USER_CANCELLED:
+        agent.print_msg("I have cancelled the operation. Nothing was changed.")
+
+    elif manga_entry == network.StatusCode.CONNECTION_ERROR or manga_entry == network.StatusCode.OTHER_ERROR \
+            or manga_entry == ListSearchStatusCode.NO_RESULTS:
+        return
+
     # check the searching the list returned a valid result
-    if manga_entry is not None:
+    else:
         manga_title = manga_entry.series_title.get_text()
 
         xml_tag_format = "<{0}>{1}</{0}>"
@@ -225,7 +178,12 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
         url = "https://myanimelist.net/api/mangalist/update/{}.xml".format(manga_entry.series_mangadb_id.get_text())
 
         # send the async request to the server, uses GET due to bug in API handling POST requests
-        r = ui.threaded_action(requests.get, "Updating", **{"url": url, "params": {"data": xml}, "auth": credentials})
+        r = ui.threaded_action(network.make_request, msg="Updating", request=requests.get, url=url,
+                               params={"data": xml}, auth=credentials)
+
+        if r == network.StatusCode.CONNECTION_ERROR:
+            agent.print_connection_error_msg()
+            return
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
@@ -244,98 +202,6 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
             agent.print_msg("There was an error updating the manga. Please try again.")
 
 
-# def increment_chapter_count(credentials):
-#     """Search for and increment the chapter count by 1 for a manga on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     """
-#
-#     # prompt the user to search their list for the entry
-#     result = search_list(credentials[0], "manga")
-#
-#     if result is not None:
-#         echo_entry_title(result)
-#         _update_manga_list_entry(credentials, "chapter", result)
-
-
-# def increment_volume_count(credentials):
-#     """Search for and increment the volume count by 1 for a manga on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     """
-#
-#     # prompt the user to search their list for the entry
-#     result = search_list(credentials[0], "manga")
-#
-#     if result is not None:
-#         echo_entry_title(result)
-#         _update_manga_list_entry(credentials, "volume", result)
-
-
-# def set_chapter_count(credentials):
-#     """Search for and set the chapter count for a manga on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     """
-#     # prompt the user to search their list for the entry
-#     result = search_list(credentials[0], "manga")
-#
-#     # check that the search returned a valid result
-#     if result is not None:
-#         echo_entry_title(result)
-#         chapters = helpers.get_new_count_from_user("chapter")
-#         if chapters is not None:
-#             _update_manga_list_entry(credentials, "chapter", result, chapters)
-
-
-# def set_volume_count(credentials):
-#     """Search for and set the volume count for a manga on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     """
-#     # prompt the user to search their list for the entry
-#     result = search_list(credentials[0], "manga")
-#
-#     # check that the search returned a valid result
-#     if result is not None:
-#         echo_entry_title(result)
-#         volumes = helpers.get_new_count_from_user("volume")
-#         if volumes is not None:
-#             _update_manga_list_entry(credentials, "volume", result, volumes)
-
-
-# def set_manga_score(credentials):
-#     """Search for and set the score for a manga on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     :return: None when the score is updated
-#     """
-#     result = search_list(credentials[0], "manga")
-#
-#     # check that the search returned a valid result
-#     if result is not None:
-#         echo_entry_title(result)
-#         score = helpers.get_score_choice_from_user()
-#         if score is not None:
-#             _update_manga_list_entry(credentials, "score", result, score)
-
-
-# def set_manga_status(credentials):
-#     """Search for and set the status for a manga on user's list
-#
-#     :param credentials: A tuple containing valid MAL account details in the format (username, password)
-#     """
-#
-#     result = search_list(credentials[0], "manga")
-#
-#     # check that the search returned a valid result
-#     if result is not None:
-#         echo_entry_title(result)
-#         status = helpers.get_status_choice_from_user("manga")
-#`
-#         _update_manga_list_entry(credentials, "status", result, status)
-
-
 def search_list(username, search_type, search_string):
     """Search a user's list for a manga or anime and return the matching entry
 
@@ -351,65 +217,73 @@ def search_list(username, search_type, search_string):
     click.echo()
 
     # the base url of the user list xml data
-    malappinfo = "https://myanimelist.net/malappinfo.php"
+    url = "https://myanimelist.net/malappinfo.php"
 
-    r = ui.threaded_action(requests.get, "Searching your {} list".format(search_type),
-                           **{"url": malappinfo, "params": {"u": username, "type": search_type}, "stream": True})
+    r = ui.threaded_action(network.make_request, msg="Searching your {} list".format(search_type), request=requests.get,
+                           url=url, params={"u": username, "type": search_type}, stream=True)
 
-    r.raw.decode_content = True
+    if r == network.StatusCode.CONNECTION_ERROR:
+        agent.print_connection_error_msg()
+        return r
 
-    soup = BeautifulSoup(r.raw, "xml")
+    elif r.status_code == 200:
+        r.raw.decode_content = True
 
-    matches = []
+        soup = BeautifulSoup(r.raw, "xml")
 
-    # iterate over the returned entries for the search type
-    for entry in soup.find_all(search_type):
-        # normalise the title and synonyms to lowercase
-        series_title_lower = entry.series_title.get_text().lower()
-        series_synonyms_lower = entry.series_synonyms.get_text().lower()
+        matches = []
 
-        # if the whole search string matches the entry then add it to our list of matches
-        if search_string in series_title_lower or search_string in series_synonyms_lower:
-            matches.append(entry)
-            continue
+        # iterate over the returned entries for the search type
+        for entry in soup.find_all(search_type):
+            # normalise the title and synonyms to lowercase
+            series_title_lower = entry.series_title.get_text().lower()
+            series_synonyms_lower = entry.series_synonyms.get_text().lower()
 
-        # check if any of our tokens matches the entry
-        for token in search_string.split():
-            if token in series_title_lower or token in series_synonyms_lower:
+            # if the whole search string matches the entry then add it to our list of matches
+            if search_string in series_title_lower or search_string in series_synonyms_lower:
                 matches.append(entry)
-                break
+                continue
 
-    num_results = len(matches)
+            # check if any of our tokens matches the entry
+            for token in search_string.split():
+                if token in series_title_lower or token in series_synonyms_lower:
+                    matches.append(entry)
+                    break
 
-    if num_results == 0:
-        agent.print_msg("I could not find \"{}\" on your {} list".format(search_string, search_type))
-        return ListSearchStatusCode.NO_RESULTS
-    elif num_results == 1:
-        return matches[0]
-    else:
-        agent.print_msg("I found {} results. Did you mean:".format(num_results))
+        num_results = len(matches)
 
-        # iterate over the matches and print them out
-        for i in range(len(matches)):
-            title_format = "{}> {} ({})" if matches[i].series_synonyms.get_text() != "" else "{}> {}"
-            click.echo(title_format.format(i + 1, matches[i].series_title.get_text(),
-                                           matches[i].series_synonyms.get_text()))
-
-        click.echo("{}> [None of these]".format(num_results + 1))
-
-        # get a valid choice from the user
-        while True:
-            option = click.prompt("Please choose an option", type=int)
-            if 1 <= option <= num_results + 1:
-                break
-            else:
-                click.echo("You must enter a value between {} and {}".format(1, num_results + 1))
-
-        # check that the user didn't choose the none of these option before returning the match
-        if option != num_results + 1:
-            return matches[option - 1]
+        if num_results == 0:
+            agent.print_msg("I could not find \"{}\" on your {} list".format(search_string, search_type))
+            return ListSearchStatusCode.NO_RESULTS
+        elif num_results == 1:
+            return matches[0]
         else:
-            return ListSearchStatusCode.USER_CANCELLED
+            agent.print_msg("I found {} results. Did you mean:".format(num_results))
+
+            # iterate over the matches and print them out
+            for i in range(len(matches)):
+                title_format = "{}> {} ({})" if matches[i].series_synonyms.get_text() != "" else "{}> {}"
+                click.echo(title_format.format(i + 1, matches[i].series_title.get_text(),
+                                               matches[i].series_synonyms.get_text()))
+
+            click.echo("{}> [None of these]".format(num_results + 1))
+
+            # get a valid choice from the user
+            while True:
+                option = click.prompt("Please choose an option", type=int)
+                if 1 <= option <= num_results + 1:
+                    break
+                else:
+                    click.echo("You must enter a value between {} and {}".format(1, num_results + 1))
+
+            # check that the user didn't choose the none of these option before returning the match
+            if option != num_results + 1:
+                return matches[option - 1]
+            else:
+                return ListSearchStatusCode.USER_CANCELLED
+    else:
+        agent.print_msg("There was an error getting the entry on your list. Please try again.")
+        return network.StatusCode.OTHER_ERROR
 
 
 def view_list(username, search_type):
@@ -426,32 +300,38 @@ def view_list(username, search_type):
     url = "https://myanimelist.net/malappinfo.php"
 
     # make the request to the server and get the results
-    r = ui.threaded_action(requests.get, "Getting {} list".format(search_type),
-                           **{"url": url, "params": {"u": username, "type": search_type}, "stream": True})
+    r = ui.threaded_action(network.make_request, "Getting {} list".format(search_type),
+                           request=requests.get, url=url, params={"u": username, "type": search_type}, stream=True)
 
-    r.raw.decode_content = True
+    if r == network.StatusCode.CONNECTION_ERROR:
+        agent.print_connection_error_msg()
 
-    soup = BeautifulSoup(r.raw, "xml")
+    elif r.status_code == 200:
+        r.raw.decode_content = True
 
-    i = 1
-    for entry in soup.find_all(search_type):
-        # use a different layout depending on whether it is anime or manga
-        layout_string = "{}> {}" + "\n    - {}: {}" * (4 if search_type == "anime" else 5)
+        soup = BeautifulSoup(r.raw, "xml")
 
-        if search_type == "anime":
-            click.echo(layout_string.format(
-                i, entry.series_title.get_text(),
-                "Status", ANIME_STATUS_MAP[entry.my_status.get_text()],
-                "Score", entry.my_score.get_text(),
-                "Type", ANIME_TYPE_MAP[entry.series_type.get_text()],
-                "Progress", entry.my_watched_episodes.get_text() + "/" + entry.series_episodes.get_text()))
-        else:
-            click.echo(layout_string.format(
-                i, entry.series_title.get_text(),
-                "Status", MANGA_STATUS_MAP[entry.my_status.get_text()],
-                "Score", entry.my_score.get_text(),
-                "Type", MANGA_TYPE_MAP[entry.series_type.get_text()],
-                "Chapters", entry.my_read_chapters.get_text() + "/" + entry.series_chapters.get_text(),
-                "Volumes", entry.my_read_volumes.get_text() + "/" + entry.series_volumes.get_text()))
+        i = 1
+        for entry in soup.find_all(search_type):
+            # use a different layout depending on whether it is anime or manga
+            layout_string = "{}> {}" + "\n    - {}: {}" * (4 if search_type == "anime" else 5)
 
-        i += 1
+            if search_type == "anime":
+                click.echo(layout_string.format(
+                    i, entry.series_title.get_text(),
+                    "Status", ANIME_STATUS_MAP[entry.my_status.get_text()],
+                    "Score", entry.my_score.get_text(),
+                    "Type", ANIME_TYPE_MAP[entry.series_type.get_text()],
+                    "Progress", entry.my_watched_episodes.get_text() + "/" + entry.series_episodes.get_text()))
+            else:
+                click.echo(layout_string.format(
+                    i, entry.series_title.get_text(),
+                    "Status", MANGA_STATUS_MAP[entry.my_status.get_text()],
+                    "Score", entry.my_score.get_text(),
+                    "Type", MANGA_TYPE_MAP[entry.series_type.get_text()],
+                    "Chapters", entry.my_read_chapters.get_text() + "/" + entry.series_chapters.get_text(),
+                    "Volumes", entry.my_read_volumes.get_text() + "/" + entry.series_volumes.get_text()))
+
+            i += 1
+    else:
+        agent.print_msg("There was an error getting your {} list. Please try again.".format(search_type))

@@ -5,6 +5,7 @@ import requests
 
 import agent
 import helpers
+import network
 import search
 import ui
 
@@ -29,7 +30,8 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         # search the database for the anime/manga the user wants added
         entry = search.search(credentials, entry_type, search_string, display_details=False)
 
-        if entry == search.StatusCode.NO_RESULTS or entry == search.StatusCode.USER_CANCELLED:
+        if entry == search.StatusCode.NO_RESULTS or entry == search.StatusCode.USER_CANCELLED \
+                or network.StatusCode.CONNECTION_ERROR:
             return
 
     xml_tag_format = "<{0}>{1}</{0}>"
@@ -81,7 +83,12 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         url = "https://myanimelist.net/api/{}list/add/{}.xml".format(entry_type, entry.id.get_text())
 
         # send the async add request to the server
-        r = ui.threaded_action(requests.get, "Adding", **{"url": url, "params": {"data": xml}, "auth": credentials})
+        r = ui.threaded_action(network.make_request, msg="Adding", request=requests.get, url=url, params={"data": xml},
+                               auth=credentials)
+
+        if r == network.StatusCode.CONNECTION_ERROR:
+            agent.print_connection_error_msg()
+            return
 
         # inform the user whether the request was successful or not
         if r.status_code == 201:

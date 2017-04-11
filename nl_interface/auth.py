@@ -2,6 +2,9 @@ import requests
 import click
 from enum import Enum
 
+import network
+import ui
+
 
 class StatusCode(Enum):
     """An Enum represented the status codes of the result of auth attempts"""
@@ -33,15 +36,16 @@ def validate_credentials(credentials):
     :return: If successful, a tuple containing strings in format (username, password) error code otherwise
     """
 
-    try:
-        r = requests.get("https://myanimelist.net/api/account/verify_credentials.xml", auth=credentials)
-    except requests.exceptions.ConnectionError:
-        return StatusCode.CONNECTION_ERROR
+    url = "https://myanimelist.net/api/account/verify_credentials.xml"
 
-    if r.status_code == 200:
-        return StatusCode.SUCCESS
+    r = ui.threaded_action(network.make_request, msg="Authenticating", request=requests.get, url=url, auth=credentials)
+
+    if r == network.StatusCode.CONNECTION_ERROR:
+        return r
+    elif r.status_code == 200:
+        return network.StatusCode.SUCCESS
     elif r.status_code == 401:
-        return StatusCode.UNAUTHORISED
+        return network.StatusCode.UNAUTHORISED
     else:
-        return StatusCode.OTHER_ERROR
+        return network.StatusCode.OTHER_ERROR
 

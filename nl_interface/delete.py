@@ -2,6 +2,7 @@ import click
 import requests
 
 import agent
+import network
 import ui
 import update
 
@@ -32,7 +33,8 @@ def delete_entry(credentials, entry_type, search_string):
                 url = "https://myanimelist.net/api/{}list/delete/{}.xml".format(entry_type, entry_id)
 
                 # send the async delete request to the server
-                r = ui.threaded_action(requests.delete, "Deleting", **{"url": url, "auth": credentials})
+                r = ui.threaded_action(network.make_request, msg="Deleting", request=requests.delete, url=url,
+                                       auth=credentials)
 
                 # inform the user of the result
                 if r.status_code == 200:

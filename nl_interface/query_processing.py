@@ -2,8 +2,6 @@ from enum import Enum
 import re
 import string
 
-import nltk
-
 import synonyms
 
 
@@ -49,7 +47,7 @@ def strip_info(term):
     :param term: A string, the term to remove info from
     :return: A string, the trimmed word or the original if info synonym is not present
     """
-    tokens = nltk.word_tokenize(term)
+    tokens = term.split()
 
     try:
         index = synonyms.terms["information"].index(tokens[-1])
@@ -65,7 +63,7 @@ def strip_type(term):
     :return: A tuple (string, MediaType.VALUE), the trimmed word and the type of media 
              or the original and None if no modifications made 
     """
-    tokens = nltk.word_tokenize(term)
+    tokens = term.split()
     if tokens[-1] == "anime":
         return term[:-6], MediaType.ANIME
     elif tokens[-1] == "manga":
@@ -109,14 +107,14 @@ def determine_action(query):
                     return OperationType.UPDATE
 
                 if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "view_list":
-                    if nltk.word_tokenize(query)[-1] == "list":
+                    if query.split()[-1] == "list":
                         return OperationType.VIEW_LIST
                     else:
                         return OperationType.SEARCH
 
         elif len(action_term_orders) == 3:
             if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "update" and action_term_orders[2][0] == "view_list":
-                if nltk.word_tokenize(query)[-1] == "list":
+                if query.split()[-1] == "list":
                     return OperationType.VIEW_LIST
                 else:
                     return OperationType.SEARCH
@@ -150,7 +148,7 @@ def process(query):
 
     # basic implementation of responding to hello
     for word in synonyms.terms["hello"]:
-        if word == nltk.word_tokenize(query)[0]:
+        if word == query.split()[0]:
             result["extra"] = "Hello, {}!"
             break
 
