@@ -31,7 +31,7 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         entry = search.search(credentials, entry_type, search_string, display_details=False)
 
         if entry == search.StatusCode.NO_RESULTS or entry == search.StatusCode.USER_CANCELLED \
-                or network.StatusCode.CONNECTION_ERROR:
+                or network.StatusCode.CONNECTION_ERROR or network.StatusCode.OTHER_ERROR:
             return
 
     xml_tag_format = "<{0}>{1}</{0}>"
@@ -86,6 +86,7 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         r = ui.threaded_action(network.make_request, msg="Adding", request=requests.get, url=url, params={"data": xml},
                                auth=credentials)
 
+        # check if there was an error with the user's internet connection
         if r == network.StatusCode.CONNECTION_ERROR:
             agent.print_connection_error_msg()
             return
