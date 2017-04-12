@@ -22,7 +22,7 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param field_type: A string, the detail to update, must be either "episode", "status" or "score"
     :param search_string: A string, the anime that the user wants to update
-    :param new_value: An int (or string) or None, the new value to set for the field_type
+    :param new_value: An int or None, the new value to set for the field_type
     """
 
     # the valid types of fields to update
@@ -110,7 +110,7 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param field_type: A string, the detail to update, must be either "chapter", "volume", "status" or "score"
     :param search_string: A string, the manga that the user wants to update
-    :param new_value: An int (or string) or None, the new value to set for the field_type
+    :param new_value: An int or None, the new value to set for the field_type
     """
 
     valid_field_types = ["chapter", "volume", "status", "score"]

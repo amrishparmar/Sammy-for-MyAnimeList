@@ -24,5 +24,14 @@ terms = {
     "information": ["information", "info", "data", "details", "deets"],
     # "anime": ["anime", "movie", "tv show", "show", "ova", "tv", "special", "ona"],
     # "manga": ["manga", "novel", "one-shot", "one shot", "doujinshi", "manhwa", "manhua"]
-    "score": ["score", "rating", "rate"]
+    "score": ["score", "rating", "rate"],
+    "status": ["status"],
+    "watching": ["watching", "watch"],
+    "reading": ["reading", "read"],
+    "dropped": ["dropped", "drop"],
+    "completed": ["completed", "complete"],
+    "on hold": ["on hold", "on-hold", "onhold", "hold"],
+    "plan to watch": ["plan to watch", "planning to watch"],
+    "plan to read": ["plan to watch", "planning to watch"],
+    "plan": ["plan", "planning"]
 }
