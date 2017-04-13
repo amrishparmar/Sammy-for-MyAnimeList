@@ -239,31 +239,9 @@ def process(query):
             result["term"] = delete_term.strip(" '\"")
 
     elif action == OperationType.UPDATE or action == OperationType.UPDATE_INCREMENT:
-        # increment updates
-
-        increment_syns = "|".join(synonyms.actions["increment"])
-
-        inc1 = re.match(".*(?:{}) (?:the )?(?:(episode|chapter|volume)s? )?(?:count )?(?:for |on )?(.+ ?)+?".format(
-                        increment_syns), query)
-
-        if inc1:
-            result["operation"] = OperationType.UPDATE_INCREMENT
-
-            if inc1.group(1) == "chapter":
-                modifier_term = UpdateModifier.CHAPTER
-                result["type"] = MediaType.MANGA
-            elif inc1.group(1) == "volume":
-                modifier_term = UpdateModifier.VOLUME
-                result["type"] = MediaType.MANGA
-            else:
-                modifier_term = UpdateModifier.EPISODE
-
-            result["modifier"] = modifier_term
-            result["term"] = inc1.group(2).strip(" '\"")
+        update_syns = "|".join(synonyms.actions["update"])
 
         # score updates
-
-        update_syns = "|".join(synonyms.actions["update"])
 
         score_syns = "|".join(synonyms.terms["score"])
 
@@ -279,6 +257,63 @@ def process(query):
                 result["type"] = MediaType.MANGA
 
             result["value"] = scu1.group(6) if 0 < int(scu1.group(6)) <= 10 else None
+
+        # increment updates
+
+        increment_syns = "|".join(synonyms.actions["increment"])
+
+        inc1 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:for |on )?(.+)"
+                         .format(increment_syns), query)
+
+        if inc1:
+            result["operation"] = OperationType.UPDATE_INCREMENT
+
+            if inc1.group(1) in ["chapter", "chap"]:
+                result["modifier"] = UpdateModifier.CHAPTER
+                result["type"] = MediaType.MANGA
+            elif inc1.group(1) in ["volume", "vol"]:
+                result["modifier"] = UpdateModifier.VOLUME
+                result["type"] = MediaType.MANGA
+            else:
+                result["modifier"] = UpdateModifier.EPISODE
+
+            result["term"] = inc1.group(2).strip(" '\"")
+
+        cnt1 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:by|to) )?"
+                         "(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + increment_syns), query)
+        cnt2 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:for |on )?(.+?) "
+                         "(?:to )?(\d+)".format(update_syns + increment_syns), query)
+        
+        if cnt1 or cnt2:
+            result["operation"] = OperationType.UPDATE
+
+            if cnt1:
+                if cnt1.group(1) in ["chapter", "chap"]:
+                    result["modifier"] = UpdateModifier.CHAPTER
+                    result["type"] = MediaType.MANGA
+                elif cnt1.group(1) in ["volume", "vol"]:
+                    result["modifier"] = UpdateModifier.VOLUME
+                    result["type"] = MediaType.MANGA
+                else:
+                    result["modifier"] = UpdateModifier.EPISODE
+
+                result["term"] = cnt1.group(3).strip(" '\"")
+                result["value"] = cnt1.group(2) if 0 < int(cnt1.group(2)) else None
+
+            elif cnt2:
+                if cnt2.group(1) in ["chapter", "chap"]:
+                    result["modifier"] = UpdateModifier.CHAPTER
+                    result["type"] = MediaType.MANGA
+                elif cnt2.group(1) in ["volume", "vol"]:
+                    result["modifier"] = UpdateModifier.VOLUME
+                    result["type"] = MediaType.MANGA
+                else:
+                    result["modifier"] = UpdateModifier.EPISODE
+
+                result["term"] = cnt2.group(2).strip(" '\"")
+                result["value"] = cnt2.group(3) if 0 < int(cnt2.group(3)) else None
+
+
 
         # status updates
 

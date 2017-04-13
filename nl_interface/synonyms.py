@@ -14,7 +14,7 @@ actions = {
                   "give me", "give",
                   "show me", "show",
                   "look at", "look",
-                  "what's on", "whats on",
+                  "what's on", "whats on", "what is on",
                   "see",
                   "view"]
 }
