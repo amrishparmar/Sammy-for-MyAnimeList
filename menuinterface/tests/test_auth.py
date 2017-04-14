@@ -1,7 +1,10 @@
 import unittest
 from unittest import mock
 
-from .. import auth
+try:
+    from .. import auth
+except SystemError:
+    import auth
 
 
 class TestGetUserCredentials(unittest.TestCase):

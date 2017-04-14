@@ -3,7 +3,10 @@ import unittest
 from io import StringIO
 from unittest import mock
 
-from .. import helpers
+try:
+    from .. import helpers
+except SystemError:
+    import helpers
 
 
 class TestGetStatusChoice(unittest.TestCase):
