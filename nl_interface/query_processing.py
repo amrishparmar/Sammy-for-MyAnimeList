@@ -103,6 +103,14 @@ def determine_action(query):
             except ValueError:
                 continue
 
+    for info_syn in synonyms.terms["information"]:
+        try:
+            index = query.index(info_syn)
+            action_term_orders.append(("information", index))
+            break
+        except ValueError:
+            continue
+
     if action_term_orders:
         # sort them by index first, then alphabetically
         action_term_orders = sorted(action_term_orders, key=lambda x: (x[1], x[0]))
@@ -131,6 +139,7 @@ def determine_action(query):
 
         string_to_operation_map = {
             "search": OperationType.SEARCH,
+            "information": OperationType.SEARCH,
             "update": OperationType.UPDATE,
             "increment": OperationType.UPDATE_INCREMENT,
             "add": OperationType.ADD,
@@ -171,29 +180,28 @@ def process(query):
         search_syns = "|".join(synonyms.actions["search"])
         info_syns = "|".join(synonyms.terms["information"])
 
-        sm1 = re.match(".*(?:{}) (?:(?:for|on) (?:the )?)?(?:{}) (?:(?:for|on) (?:the )?)?(.+ ?)+".format(
+        sm1 = re.search("(?:{}) (?:(?:for|on) (?:the )?)?(?:{}) (?:(?:for|on) (?:the )?)?(.+)".format(
                         search_syns, info_syns), query)
-        sm2 = re.match(".*(?:{}) (?:(?:for|on) )?(?:the )?(.+ ?)+".format(search_syns + info_syns), query)
-        sm3 = re.match(".*(?:{}) (.+)".format(search_syns), query)
+        sm2 = re.search("(?:{}) (?:(?:for|on) )?(?:the )?(.+)".format(search_syns + info_syns), query)
+        sm3 = re.search("(?:{}) (.+)".format(search_syns), query)
 
         if sm1 or sm2 or sm3:
             result["operation"] = OperationType.SEARCH
-            search_terms = ""
+            search_term = ""
             if sm1:
-                search_terms = sm1.group(1)
+                search_term = sm1.group(1)
                 print("sm1")
             elif sm2:
-                search_terms = strip_info(sm2.group(1))
+                search_term = strip_info(sm2.group(1))
                 print("sm2")
             elif sm3:
-                search_terms = strip_info(sm3.group(1))
+                search_term = strip_info(sm3.group(1))
                 print("sm3")
 
-            search_terms_stripped = search_terms.strip(" '\"")
-            search_terms_stripped_tuple = strip_type(search_terms_stripped)
+            search_terms_stripped_tuple = strip_type(search_term.strip(" '\""))
 
             if search_terms_stripped_tuple[1] is not None:
-                result["type"] = MediaType.MANGA if search_terms_stripped_tuple[1] == "manga" else MediaType.ANIME
+                result["type"] = search_terms_stripped_tuple[1]
 
             result["term"] = search_terms_stripped_tuple[0]
 

@@ -54,7 +54,7 @@ def search(credentials, search_type, search_string, display_details=True):
     url = "https://myanimelist.net/api/{}/search.xml?q={}".format(search_type, search_string.replace(" ", "+"))
 
     # send the async search request to the server
-    r = ui.threaded_action(network.make_request, "Searching for {}".format(search_string), request=requests.get,
+    r = ui.threaded_action(network.make_request, "Searching for \"{}\"".format(search_string), request=requests.get,
                            url=url, auth=credentials, stream=True)
 
     # check if there was an error with the user's internet connection
