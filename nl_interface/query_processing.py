@@ -24,6 +24,16 @@ class UpdateModifier(Enum):
     VOLUME = 4
 
 
+class StatusType(Enum):
+    WATCHING = 0
+    READING = 1
+    COMPLETED = 2
+    ON_HOLD = 3
+    DROPPED = 4
+    PLAN_TO_WATCH = 5
+    PLAN_TO_READ = 6
+
+
 class MediaType(Enum):
     """An Enum representing the type of media that an operation applies to"""
     ANIME = 0
@@ -229,6 +239,8 @@ def process(query):
             result["term"] = delete_term.strip(" '\"")
 
     elif action == OperationType.UPDATE or action == OperationType.UPDATE_INCREMENT:
+        # increment updates
+
         increment_syns = "|".join(synonyms.actions["increment"])
 
         inc1 = re.match(".*(?:{}) (?:the )?(?:(episode|chapter|volume)s? )?(?:count )?(?:for |on )?(.+ ?)+?".format(
@@ -249,6 +261,8 @@ def process(query):
             result["modifier"] = modifier_term
             result["term"] = inc1.group(2).strip(" '\"")
 
+        # score updates
+
         update_syns = "|".join(synonyms.actions["update"])
 
         score_syns = "|".join(synonyms.terms["score"])
@@ -258,13 +272,56 @@ def process(query):
 
         if scu1:
             result["operation"] = OperationType.UPDATE
+            result["modifier"] = UpdateModifier.SCORE
+            result["term"] = scu1.group(3).strip(" '\"")
 
             if scu1.group(2) == "manga" or scu1.group(4) == "manga":
                 result["type"] = MediaType.MANGA
 
-            result["modifier"] = UpdateModifier.SCORE
-            result["term"] = scu1.group(3).strip(" '\"")
             result["value"] = scu1.group(6) if 0 < int(scu1.group(6)) <= 10 else None
+
+        # status updates
+
+        status_syns = "|".join(synonyms.terms["status"])
+
+        sts1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
+                         ")?(?:({1}) )?(?:(?:to|of) )?(?:be )?(watch(?:ing)?|read(?:ing)?|(?:on-?)? ?hold|completed?|"
+                         "finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
+                         .format(update_syns, status_syns, "anime|manga"), query)
+
+        if sts1:
+            result["operation"] = OperationType.UPDATE
+            result["modifier"] = UpdateModifier.STATUS
+            result["term"] = sts1.group(3).strip(" '\"")
+
+            if sts1.group(2) == "manga" or sts1.group(4) == "manga":
+                result["type"] = MediaType.MANGA
+
+            status = sts1.group(6)
+
+            if status in synonyms.terms["watching"]:
+                result["value"] = StatusType.WATCHING
+                result["type"] = MediaType.ANIME
+            elif status in synonyms.terms["reading"]:
+                result["value"] = StatusType.READING
+                result["type"] = MediaType.MANGA
+            elif status in synonyms.terms["on hold"]:
+                result["value"] = StatusType.ON_HOLD
+            elif status in synonyms.terms["completed"]:
+                result["value"] = StatusType.COMPLETED
+            elif status in synonyms.terms["dropped"]:
+                result["value"] = StatusType.DROPPED
+            elif status in synonyms.terms["plan to watch"]:
+                result["value"] = StatusType.WATCHING
+                result["type"] = MediaType.ANIME
+            elif status in synonyms.terms["plan to read"]:
+                result["value"] = StatusType.READING
+                result["type"] = MediaType.MANGA
+            elif status in synonyms.terms["plan"]:
+                if result["type"] == MediaType.ANIME:
+                    result["value"] = StatusType.PLAN_TO_WATCH
+                else:
+                    result["value"] = StatusType.PLAN_TO_READ
 
     elif action == OperationType.VIEW_LIST:
         viewlist_syns = "|".join(synonyms.actions["view_list"])

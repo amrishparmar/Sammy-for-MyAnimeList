@@ -21,8 +21,8 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param field_type: A string, the detail to update, must be either "episode", "status" or "score"
-    :param search_string: 
-    :param new_value: An int (or string) or None, the new value to set for the field_type
+    :param search_string: A string, the anime that the user wants to update
+    :param new_value: An int or None, the new value to set for the field_type
     """
 
     # the valid types of fields to update
@@ -32,15 +32,17 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
     if field_type not in valid_field_types:
         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
+    # get the BeautifulSoup tag corresponding to the user's search phrase
     anime_entry = search_list(credentials[0], "anime", search_string)
 
+    # check that a valid match was returned
     if anime_entry == ListSearchStatusCode.USER_CANCELLED:
         agent.print_msg("I have cancelled the operation. Nothing was changed.")
+        return
 
     elif anime_entry == network.StatusCode.CONNECTION_ERROR or anime_entry == network.StatusCode.OTHER_ERROR \
             or anime_entry == ListSearchStatusCode.NO_RESULTS:
         return
-
     else:
         xml_tag_format = "<{0}>{1}</{0}>"
         xml_field_tags = ""
@@ -80,6 +82,7 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
         r = ui.threaded_action(network.make_request, msg="Updating", request=requests.get, url=url,
                                params={"data": xml}, auth=credentials)
 
+        # check if there was an error with the user's internet connection
         if r == network.StatusCode.CONNECTION_ERROR:
             agent.print_connection_error_msg()
             return
@@ -106,8 +109,8 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param field_type: A string, the detail to update, must be either "chapter", "volume", "status" or "score"
-    :param search_string: 
-    :param new_value: An int (or string) or None, the new value to set for the field_type
+    :param search_string: A string, the manga that the user wants to update
+    :param new_value: An int or None, the new value to set for the field_type
     """
 
     valid_field_types = ["chapter", "volume", "status", "score"]
@@ -116,16 +119,16 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
     if field_type not in valid_field_types:
         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
+    # get the BeautifulSoup tag corresponding to the user's search phrase
     manga_entry = search_list(credentials[0], "manga", search_string)
 
+    # check that a valid match was returned
     if manga_entry == ListSearchStatusCode.USER_CANCELLED:
         agent.print_msg("I have cancelled the operation. Nothing was changed.")
-
+        return
     elif manga_entry == network.StatusCode.CONNECTION_ERROR or manga_entry == network.StatusCode.OTHER_ERROR \
             or manga_entry == ListSearchStatusCode.NO_RESULTS:
         return
-
-    # check the searching the list returned a valid result
     else:
         manga_title = manga_entry.series_title.get_text()
 
@@ -165,16 +168,18 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
 
         # set the number of chapters and volumes to number in series if status set to completed
         elif field_type == "status" and new_value == 2:
-            if manga_entry.series_chapters.get_text() != 0:
+            if manga_entry.series_chapters.get_text() != "0":
                 xml_field_tags += xml_tag_format.format("chapter", manga_entry.series_chapters.get_text())
-            if manga_entry.series_volumes.get_text() != 0:
+            if manga_entry.series_volumes.get_text() != "0":
                 xml_field_tags += xml_tag_format.format("volume", manga_entry.series_volumes.get_text())
 
         if new_status != 2:
             xml_field_tags += xml_tag_format.format(field_type, new_value)
 
-        # prepare xml data and url for sending to server
+        # form the xml string
         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
+
+        # prepare the url
         url = "https://myanimelist.net/api/mangalist/update/{}.xml".format(manga_entry.series_mangadb_id.get_text())
 
         # send the async request to the server, uses GET due to bug in API handling POST requests
@@ -219,14 +224,16 @@ def search_list(username, search_type, search_string):
     # the base url of the user list xml data
     url = "https://myanimelist.net/malappinfo.php"
 
+    # send the async request to the server
     r = ui.threaded_action(network.make_request, msg="Searching your {} list".format(search_type), request=requests.get,
                            url=url, params={"u": username, "type": search_type}, stream=True)
 
+    # check if there was an error with the user's internet connection
     if r == network.StatusCode.CONNECTION_ERROR:
         agent.print_connection_error_msg()
         return r
 
-    elif r.status_code == 200:
+    if r.status_code == 200:
         r.raw.decode_content = True
 
         soup = BeautifulSoup(r.raw, "xml")
@@ -303,6 +310,7 @@ def view_list(username, search_type):
     r = ui.threaded_action(network.make_request, "Getting {} list".format(search_type),
                            request=requests.get, url=url, params={"u": username, "type": search_type}, stream=True)
 
+    # check if there was an error with the user's internet connection
     if r == network.StatusCode.CONNECTION_ERROR:
         agent.print_connection_error_msg()
 
@@ -314,7 +322,7 @@ def view_list(username, search_type):
         i = 1
         for entry in soup.find_all(search_type):
             # use a different layout depending on whether it is anime or manga
-            layout_string = "{}> {}" + "\n    - {}: {}" * (4 if search_type == "anime" else 5)
+            layout_string = "{}) {}" + "\n    - {}: {}" * (4 if search_type == "anime" else 5)
 
             if search_type == "anime":
                 click.echo(layout_string.format(

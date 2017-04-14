@@ -197,9 +197,9 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
 
         # set the number of chapters and volumes to number in series if status set to completed
         elif field_type == "status" and new_value == 2:
-            if manga_entry.series_chapters.get_text() != 0:
+            if manga_entry.series_chapters.get_text() != "0":
                 xml_field_tags += xml_tag_format.format("chapter", manga_entry.series_chapters.get_text())
-            if manga_entry.series_volumes.get_text() != 0:
+            if manga_entry.series_volumes.get_text() != "0":
                 xml_field_tags += xml_tag_format.format("volume", manga_entry.series_volumes.get_text())
 
         if new_status != 2:
@@ -347,7 +347,8 @@ def search_list(username, search_type):
         search_tokens = search_lower.split()
 
         # make the request to the server and get the results
-        r = requests.get("https://myanimelist.net/malappinfo.php", params={"u": username, "type": search_type}, stream=True)
+        r = requests.get("https://myanimelist.net/malappinfo.php", params={"u": username, "type": search_type},
+                         stream=True)
         r.raw.decode_content = True
 
         soup = BeautifulSoup(r.raw, "xml")

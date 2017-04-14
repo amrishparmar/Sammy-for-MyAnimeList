@@ -120,7 +120,16 @@ def process_query(query):
     elif process_result["operation"] == query_processing.OperationType.UPDATE:
         if process_result["type"] == query_processing.MediaType.ANIME:
             if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
-                pass
+                if process_result["value"] == query_processing.StatusType.WATCHING:
+                    update.update_anime_list_entry(credentials, "status", process_result["term"], 1)
+                elif process_result["value"] == query_processing.StatusType.COMPLETED:
+                    update.update_anime_list_entry(credentials, "status", process_result["term"], 2)
+                elif process_result["value"] == query_processing.StatusType.ON_HOLD:
+                    update.update_anime_list_entry(credentials, "status", process_result["term"], 3)
+                elif process_result["value"] == query_processing.StatusType.DROPPED:
+                    update.update_anime_list_entry(credentials, "status", process_result["term"], 4)
+                elif process_result["value"] == query_processing.StatusType.PLAN_TO_WATCH:
+                    update.update_anime_list_entry(credentials, "status", process_result["term"], 6)
 
             elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
                 if process_result["value"] is None:
@@ -140,7 +149,16 @@ def process_query(query):
 
         elif process_result["type"] == query_processing.MediaType.MANGA:
             if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
-                pass
+                if process_result["value"] == query_processing.StatusType.READING:
+                    update.update_manga_list_entry(credentials, "status", process_result["term"], 1)
+                elif process_result["value"] == query_processing.StatusType.COMPLETED:
+                    update.update_manga_list_entry(credentials, "status", process_result["term"], 2)
+                elif process_result["value"] == query_processing.StatusType.ON_HOLD:
+                    update.update_manga_list_entry(credentials, "status", process_result["term"], 3)
+                elif process_result["value"] == query_processing.StatusType.DROPPED:
+                    update.update_manga_list_entry(credentials, "status", process_result["term"], 4)
+                elif process_result["value"] == query_processing.StatusType.PLAN_TO_READ:
+                    update.update_manga_list_entry(credentials, "status", process_result["term"], 6)
 
             elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
                 if process_result["value"] is None:

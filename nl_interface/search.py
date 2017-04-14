@@ -57,6 +57,7 @@ def search(credentials, search_type, search_string, display_details=True):
     r = ui.threaded_action(network.make_request, "Searching for {}".format(search_string), request=requests.get,
                            url=url, auth=credentials, stream=True)
 
+    # check if there was an error with the user's internet connection
     if r == network.StatusCode.CONNECTION_ERROR:
         agent.print_connection_error_msg()
         return r
@@ -64,7 +65,8 @@ def search(credentials, search_type, search_string, display_details=True):
     if r.status_code == 204:
         agent.print_msg("I'm sorry I could not find any results for \"{}\".".format(search_string))
         return StatusCode.NO_RESULTS
-    else:
+
+    elif r.status_code == 200:
         # decode the raw content so beautiful soup can read it as xml not a string
         r.raw.decode_content = True
         soup = BeautifulSoup(r.raw, "xml")
@@ -109,3 +111,6 @@ def search(credentials, search_type, search_string, display_details=True):
                     return matches[option - 1]
             else:
                 return StatusCode.USER_CANCELLED
+    else:
+        agent.print_msg("There was an error getting the entry on your list. Please try again.")
+        return network.StatusCode.OTHER_ERROR
