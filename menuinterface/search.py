@@ -4,7 +4,7 @@ import click
 import requests
 from bs4 import BeautifulSoup
 
-from . import add
+import add
 
 
 def display_entry_details(entry):

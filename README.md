@@ -3,9 +3,9 @@ An application for updating and retrieving information from [MyAnimeList.net](ht
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-This comprises of two applications: the **menu-driven interface** and the **natural language interface**.
+This comprises of two applications: the **natural language interface** and the **menu-driven interface**.
 
-Common features of them include:
+Features common to both of them include:
 - Search the MAL database for anime or manga information
 - Add new anime or manga to user's personal list
 - Delete anime or manga from the user's personal list
@@ -13,27 +13,32 @@ Common features of them include:
 - Update scores on user's personal list
 - Update statuses on user's personal list
 
-The menu-driven interface is a simple command-line application that allows users to manage their own personal lists.
-
 The natural language interface allows users to enter commands in plain English to access and update information from the MAL website. For example, the user could enter queries such as `I want to search for Naruto information` for search or `Update my chapter count for Death Note` to increment the number of read chapters on their manga list as well as many others.
+
+The menu-driven interface is also allows users to manage their own personal lists and search the website, however it does not feature natural language functionality.
+_N.B. This version doesn't quite have feature parity with the NL interface when it comes to some of underlying functionality, particularly network code. This will likely be improved in future._
 
 ## Using the application
 ### Dependencies
 To run from source, the following are required:
 - [Python](https://www.python.org/) v3.4+
 - [Requests](http://docs.python-requests.org/en/master/)
-- [Click](http://click.pocoo.org/6/) v6+
-- [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/) v4
-- [Natural Language Toolkit (NLTK)](http://www.nltk.org/) v3 [only required for the natural language interface]
+- [Click](http://click.pocoo.org/6/)
+- [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)
 
 ### Running the application
 For the menu-driven interface run the following from the root of the project:
 ```
-python menuinterface.py
+python menuinterface
 ```
 For the natural language interface run the following from the root of the project:
 ```
-python nlinterface.py
+python nl_interface
 ```
+
+You may need to replace `python` with `python3` in the commands above to run the correct version of Python, particularly on some Mac/Linux configurations.
+
+#### Binaries
+I will make executable binaries available once the first complete version is ready.
 
 Enjoy! :)
