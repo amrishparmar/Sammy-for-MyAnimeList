@@ -145,13 +145,7 @@ def process_query(query):
                                                    process_result["value"])
 
             elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
-                pass
-
-            elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
-                pass
-
-            elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
-                pass
+                update.update_anime_list_entry(credentials, "episode", process_result["term"], process_result["value"])
 
         elif process_result["type"] == query_processing.MediaType.MANGA:
             if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
@@ -173,14 +167,11 @@ def process_query(query):
                     update.update_manga_list_entry(credentials, "score", process_result["term"],
                                                    process_result["value"])
 
-            elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
-                pass
-
             elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
-                pass
+                update.update_manga_list_entry(credentials, "chapter", process_result["term"], process_result["value"])
 
             elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
-                pass
+                update.update_manga_list_entry(credentials, "volume", process_result["term"], process_result["value"])
 
     elif process_result["operation"] == query_processing.OperationType.UPDATE_INCREMENT:
         if process_result["type"] == query_processing.MediaType.ANIME:
@@ -217,5 +208,5 @@ def process_query(query):
             update.view_list(credentials[0], "manga")
 
     # if the system failed to understand the query
-    elif process_result["extra"]:
+    elif process_result["extra"] is None:
         print_failure()

@@ -36,8 +36,10 @@ def _update_anime_list_entry(credentials, field_type, anime_entry, new_value=Non
                 current_ep_count = int(anime_entry.my_watched_episodes.get_text())
                 new_value = current_ep_count + 1
 
+            series_episodes = int(anime_entry.series_episodes.get_text())
+
             # check if the user has reached the last episode
-            if new_value == int(anime_entry.series_episodes.get_text()):
+            if new_value == series_episodes and series_episodes != 0:
                 click.echo("Episode {} is the last in the series.".format(new_value))
                 if click.confirm("Do you wish to change the status to completed?"):
                     xml_field_tags += xml_tag_format.format("status", "2")
@@ -180,8 +182,8 @@ def _update_manga_list_entry(credentials, field_type, manga_entry, new_value=Non
             series_volumes = int(manga_entry.series_volumes.get_text())
 
             # check if the user has reached either the last chapter or last volume
-            if (new_value == series_chapters and field_type == "chapter") or \
-               (new_value == series_volumes and field_type == "volume"):
+            if (new_value == series_chapters and field_type == "chapter" and series_chapters != 0) or \
+                    (new_value == series_volumes and field_type == "volume" and series_volumes != 0):
                 click.echo("{} {} is the last in the series.".format(field_type.title(), new_value))
                 if click.confirm("Do you wish to change the status to completed?"):
                     # set both the chapter and volume counts to the number in the series

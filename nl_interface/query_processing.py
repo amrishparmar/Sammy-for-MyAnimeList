@@ -189,7 +189,7 @@ def process(query):
 
         sm1 = re.search("(?:{}) (?:(?:for|on) (?:the )?)?(?:{}) (?:(?:for|on) (?:the )?)?(.+)".format(
                         search_syns, info_syns), query)
-        sm2 = re.search("(?:{}) (?:(?:for|on) )?(?:the )?(.+)".format(search_syns + info_syns), query)
+        sm2 = re.search("(?:{}) (?:(?:for|on) )?(?:the )?(.+)".format(search_syns + "|" + info_syns), query)
         sm3 = re.search("(?:{}) (.+)".format(search_syns), query)
 
         if sm1 or sm2 or sm3:
@@ -256,55 +256,53 @@ def process(query):
     elif action == OperationType.UPDATE or action == OperationType.UPDATE_INCREMENT:
         update_syns = "|".join(synonyms.actions["update"])
 
-        # score updates
-
-        score_syns = "|".join(synonyms.terms["score"])
-
-        scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
-                         ")?(?:({1}) )?(?:(?:to|of) )?(\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
-
-        if scu1:
-            result["operation"] = OperationType.UPDATE
-            result["modifier"] = UpdateModifier.SCORE
-            result["term"] = scu1.group(3).strip(" '\"")
-
-            if scu1.group(2) == "manga" or scu1.group(4) == "manga":
-                result["type"] = MediaType.MANGA
-
-            result["value"] = scu1.group(6) if 0 < int(scu1.group(6)) <= 10 else None
-
         # increment updates
 
         increment_syns = "|".join(synonyms.actions["increment"])
 
-        inc1 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:for |on )?(.+)"
+        inc1 = re.search("(?:{}) (?:the )?(?:count )?(?:(?:for|on) )?(?:the )?(.+ ?) (anime|manga)"
+                         .format(increment_syns), query)
+        inc2 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:for|on) )?(.+)"
                          .format(increment_syns), query)
 
-        if inc1:
+        if inc1 or inc2:
             result["operation"] = OperationType.UPDATE_INCREMENT
 
-            if inc1.group(1) in ["chapter", "chap"]:
-                result["modifier"] = UpdateModifier.CHAPTER
-                result["type"] = MediaType.MANGA
-            elif inc1.group(1) in ["volume", "vol"]:
-                result["modifier"] = UpdateModifier.VOLUME
-                result["type"] = MediaType.MANGA
-            else:
-                result["modifier"] = UpdateModifier.EPISODE
+            if inc1:
+                print("inc1")
+                if inc1.group(2) == "manga":
+                    result["modifier"] = UpdateModifier.CHAPTER
+                    result["type"] = MediaType.MANGA
+                else:
+                    result["modifier"] = UpdateModifier.EPISODE
 
-            result["term"] = inc1.group(2).strip(" '\"")
+                result["term"] = inc1.group(1)
+
+            elif inc2:
+                print("inc2")
+                if inc2.group(1) in ["chapter", "chap"]:
+                    result["modifier"] = UpdateModifier.CHAPTER
+                    result["type"] = MediaType.MANGA
+                elif inc2.group(1) in ["volume", "vol"]:
+                    result["modifier"] = UpdateModifier.VOLUME
+                    result["type"] = MediaType.MANGA
+                else:
+                    result["modifier"] = UpdateModifier.EPISODE
+
+                result["term"] = inc2.group(2).strip(" '\"")
 
         # count updates
 
-        cnt1 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:by|to) )?"
-                         "(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + increment_syns), query)
-        cnt2 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:for |on )?(.+?) "
-                         "(?:to )?(\d+)".format(update_syns + increment_syns), query)
+        cnt1 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:by|to) )?"
+                         "(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + "|" + increment_syns), query)
+        cnt2 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?"
+                         "(?:(?:for|on) )?(.+?) (?:to )?(\d+)".format(update_syns + "|" + increment_syns), query)
         
         if cnt1 or cnt2:
             result["operation"] = OperationType.UPDATE
 
             if cnt1:
+                print("cnt1")
                 if cnt1.group(1) in ["chapter", "chap"]:
                     result["modifier"] = UpdateModifier.CHAPTER
                     result["type"] = MediaType.MANGA
@@ -315,9 +313,10 @@ def process(query):
                     result["modifier"] = UpdateModifier.EPISODE
 
                 result["term"] = cnt1.group(3).strip(" '\"")
-                result["value"] = cnt1.group(2) if 0 < int(cnt1.group(2)) else None
+                result["value"] = int(cnt1.group(2))
 
             elif cnt2:
+                print("cnt2")
                 if cnt2.group(1) in ["chapter", "chap"]:
                     result["modifier"] = UpdateModifier.CHAPTER
                     result["type"] = MediaType.MANGA
@@ -328,15 +327,40 @@ def process(query):
                     result["modifier"] = UpdateModifier.EPISODE
 
                 result["term"] = cnt2.group(2).strip(" '\"")
-                result["value"] = cnt2.group(3) if 0 < int(cnt2.group(3)) else None
+                result["value"] = int(cnt2.group(3))
+
+        # score updates
+
+        score_syns = "|".join(synonyms.terms["score"])
+
+        scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:(?:{1}) )(?:(?:on|of) )?(?:the )?(?:({2}) )?(.+?) (?:({2}) )?"
+                         "(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
+        scu2 = re.search("(?:{0}) (?:(?:the|my) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a )?(?:(?:{1}) )"
+                         "(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
+
+        if scu1 or scu2:
+            result["operation"] = OperationType.UPDATE
+            result["modifier"] = UpdateModifier.SCORE
+            if scu1:
+                print("scu1")
+                if scu1.group(1) == "manga" or scu1.group(3) == "manga":
+                    result["type"] = MediaType.MANGA
+                result["term"] = scu1.group(2).strip(" '\"")
+                result["value"] = int(scu1.group(4))
+            elif scu2:
+                print("scu2")
+                if scu2.group(1) == "manga" or scu2.group(3) == "manga":
+                    result["type"] = MediaType.MANGA
+                result["term"] = scu2.group(2).strip(" '\"")
+                result["value"] = int(scu2.group(4))
 
         # status updates
 
         status_syns = "|".join(synonyms.terms["status"])
 
         sts1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
-                         ")?(?:({1}) )?(?:(?:to|of|as) )?(?:be )?(watch(?:ing)?|read(?:ing)?|(?:on-?)? ?hold|completed?|"
-                         "finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
+                         ")?(?:({1}) )?(?:(?:to|of|as) )?(?:be )?(watch(?:ing)?|read(?:ing)?|(?:on-?)? ?hold|completed?"
+                         "|finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
                          .format(update_syns, status_syns, "anime|manga"), query)
 
         if sts1:

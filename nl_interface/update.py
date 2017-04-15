@@ -119,6 +119,14 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
     if field_type not in valid_field_types:
         raise ValueError("Invalid argument for {}, must be one of {}.".format(field_type, valid_field_types))
 
+    if field_type == "score" and 1 > new_value > 10:
+        agent.print_msg("I'm sorry, but the new score value must be between 1 and 10.")
+        return
+
+    if new_value is not None and new_value < 0:
+        agent.print_msg("The value for {} cannot be less than 0.".format(field_type))
+        return
+
     # get the BeautifulSoup tag corresponding to the user's search phrase
     manga_entry = search_list(credentials[0], "manga", search_string)
 
@@ -150,9 +158,16 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
             series_chapters = int(manga_entry.series_chapters.get_text())
             series_volumes = int(manga_entry.series_volumes.get_text())
 
+            if field_type == "chapters" and series_chapters != 0 and new_value > series_chapters:
+                agent.print_msg("There are only {} chapters in this series.".format(series_chapters))
+                return
+            elif field_type == "volumes" and series_volumes != 0 and new_value > series_volumes:
+                agent.print_msg("There are only {} volumes in this series.".format(series_volumes))
+                return
+
             # check if the user has reached either the last chapter or last volume
-            if (new_value == series_chapters and field_type == "chapter") or \
-               (new_value == series_volumes and field_type == "volume"):
+            if (new_value == series_chapters and field_type == "chapter" and series_chapters != 0) or \
+               (new_value == series_volumes and field_type == "volume" and series_volumes != 0):
                 agent.print_msg("{} {} is the last in the series.".format(field_type.title(), new_value))
                 if click.confirm("Sammy> Do you wish to change the status to completed?"):
                     # set both the chapter and volume counts to the number in the series
@@ -173,7 +188,7 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
             if manga_entry.series_volumes.get_text() != "0":
                 xml_field_tags += xml_tag_format.format("volume", manga_entry.series_volumes.get_text())
 
-        if new_status != 2:
+        if new_status not in [1, 2]:
             xml_field_tags += xml_tag_format.format(field_type, new_value)
 
         # form the xml string
