@@ -20,7 +20,9 @@ actions = {
 }
 
 terms = {
-    "hello": ["hello", "hi", "hey"],
+    "hello": ["hello", "hi", "hey", "yo"],
+    "thank you": ["thank you", "thanks", "cheers", "gracias", "merci", "danke"],
+    "exit": ["exit", "quit", "leave", "goodbye", "bye", "bye bye", "adios", "so long"],
     "information": ["information", "info", "data", "details", "deets"],
     # "anime": ["anime", "movie", "tv show", "show", "ova", "tv", "special", "ona"],
     # "manga": ["manga", "novel", "one-shot", "one shot", "doujinshi", "manhwa", "manhua"]

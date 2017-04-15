@@ -39,6 +39,11 @@ class MediaType(Enum):
     ANIME = 0
     MANGA = 1
 
+class Extras(Enum):
+    GREETING = 0
+    THANKS = 1
+    EXIT = 2
+
 
 def normalise(query):
     """Normalise a query for consistent string analysis
@@ -158,6 +163,9 @@ def process(query):
     """
     query = normalise(query)
 
+    if query in synonyms.terms["exit"]:
+        return Extras.EXIT
+
     result = {"operation": None,
               "type": MediaType.ANIME,
               "term": "",
@@ -165,11 +173,10 @@ def process(query):
               "value": None,
               "extra": None}
 
-    # basic implementation of responding to hello
-    for word in synonyms.terms["hello"]:
-        if word == query.split()[0]:
-            result["extra"] = "Hello, {}!"
-            break
+    if re.search("(?:{}).*".format("|".join(synonyms.terms["hello"])), query):
+        result["extra"] = Extras.GREETING
+    elif re.search("(?:{}).*".format("|".join(synonyms.terms["thank you"])), query):
+        result["extra"] = Extras.THANKS
 
     # determine the likely type of action the user intended
     action = determine_action(query)
@@ -287,6 +294,8 @@ def process(query):
 
             result["term"] = inc1.group(2).strip(" '\"")
 
+        # count updates
+
         cnt1 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:by|to) )?"
                          "(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + increment_syns), query)
         cnt2 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:for |on )?(.+?) "
@@ -321,14 +330,12 @@ def process(query):
                 result["term"] = cnt2.group(2).strip(" '\"")
                 result["value"] = cnt2.group(3) if 0 < int(cnt2.group(3)) else None
 
-
-
         # status updates
 
         status_syns = "|".join(synonyms.terms["status"])
 
         sts1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
-                         ")?(?:({1}) )?(?:(?:to|of) )?(?:be )?(watch(?:ing)?|read(?:ing)?|(?:on-?)? ?hold|completed?|"
+                         ")?(?:({1}) )?(?:(?:to|of|as) )?(?:be )?(watch(?:ing)?|read(?:ing)?|(?:on-?)? ?hold|completed?|"
                          "finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
                          .format(update_syns, status_syns, "anime|manga"), query)
 

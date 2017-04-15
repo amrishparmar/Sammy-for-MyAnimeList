@@ -26,7 +26,9 @@ def print_failure():
         "I'm sorry. I'm not sure what you mean.",
         "I didn't quite catch that.",
         "Hmm, I'm don't know what that means.",
-        "Lol, wut?"
+        "I'm not entirely sure I know what it is you want.",
+        "I don't quite understand what you mean.",
+        "I'm sure not sure I understand."
     ]
     print_msg(random.choice(failure_responses))
 
@@ -98,15 +100,19 @@ def process_query(query):
 
     :param query: A string, the raw user query
     """
-    if query.lower() in ["exit", "quit", "leave", "bye"]:
-        print_msg("Bye bye!")
-        sys.exit()
-
     process_result = query_processing.process(query)
     print_msg(str(process_result)) # print out the dictionary for debug purposes
 
-    if process_result["extra"] is not None:
-        print_msg(process_result["extra"].format(credentials[0]))
+    if process_result == query_processing.Extras.EXIT:
+        print_msg("Bye bye!")
+        sys.exit()
+
+    if process_result["extra"] == query_processing.Extras.GREETING:
+        greetings = ["Hi", "Hello", "Yo"]
+        print_msg("{}, {}".format(random.choice(greetings), credentials[0]))
+    elif process_result["extra"] == query_processing.Extras.THANKS:
+        thanks = ["No problem", "You're welcome", "Any time", "You are very welcome"]
+        print_msg("{} :D".format(random.choice(thanks)))
 
     # search queries
     if process_result["operation"] == query_processing.OperationType.SEARCH:
@@ -211,5 +217,5 @@ def process_query(query):
             update.view_list(credentials[0], "manga")
 
     # if the system failed to understand the query
-    elif process_result["extra"] is None:
+    elif process_result["extra"]:
         print_failure()
