@@ -8,7 +8,7 @@ actions = {
                "send", "send me"],
     "update": ["update", "change", "amend", "give", "rate", "set"],
     "increment": ["increment", "increase", "update"],
-    "add": ["add", "append"],
+    "add": ["add", "append", "put"],
     "delete": ["delete", "remove", "eliminate", "get rid of", "take"],
     "view_list": ["get me", "get",
                   "give me", "give",

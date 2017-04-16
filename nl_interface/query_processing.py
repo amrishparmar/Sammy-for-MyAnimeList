@@ -39,6 +39,7 @@ class MediaType(Enum):
     ANIME = 0
     MANGA = 1
 
+
 class Extras(Enum):
     GREETING = 0
     THANKS = 1
@@ -216,11 +217,12 @@ def process(query):
         # rules for add requests
 
         add_syns = "|".join(synonyms.actions["add"])
+        am1 = re.search("(?:{}) (?:the )(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga))".format(add_syns), query)
+        am2 = re.search("(?:{}) (?:the )(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga)? ?list)"
+                        .format(add_syns), query)
+        am3 = re.search("(?:{}) (.+)".format(add_syns), query)
 
-        am1 = re.match(".*(?:{}) (.+?)(?= (?:to )?(?:my )?(anime|manga)? ?list)".format(add_syns), query)
-        am2 = re.match(".*(?:{}) (.+)".format(add_syns), query)
-
-        if am1 or am2:
+        if am1 or am2 or am3:
             result["operation"] = OperationType.ADD
             add_term = ""
             if am1:
@@ -230,17 +232,22 @@ def process(query):
             elif am2:
                 print("am2")
                 add_term = am2.group(1)
+                result["type"] = MediaType.MANGA if am2.group(2) == "manga" else MediaType.ANIME
+            elif am3:
+                print("am3")
+                add_term = am3.group(1)
 
             result["term"] = add_term.strip(" '\"")
 
     elif action == OperationType.DELETE:
         delete_syns = "|".join(synonyms.actions["delete"])
 
-        dm1 = re.match(".*(?:{}) (.+?)(?: (?:off )?(?:from )?(?:my )?(anime|manga)? ?(?:list))".format(delete_syns),
-                       query)
-        dm2 = re.match(".*(?:{}) (.+)".format(delete_syns), query)
+        dm1 = re.search("(?:{}) (?:the )(.+?)(?: (?:off )?(?:from )?(?:my )?(anime|manga))".format(delete_syns), query)
+        dm2 = re.search("(?:{}) (?:the )(.+?)(?: (?:off )?(?:from )?(?:my )?(anime|manga)? ?list)".format(delete_syns),
+                        query)
+        dm3 = re.search("(?:{}) (.+)".format(delete_syns), query)
 
-        if dm1 or dm2:
+        if dm1 or dm2 or dm3:
             result["operation"] = OperationType.DELETE
             delete_term = ""
             if dm1:
@@ -250,6 +257,10 @@ def process(query):
             elif dm2:
                 print("dm2")
                 delete_term = dm2.group(1)
+                result["type"] = MediaType.MANGA if dm2.group(2) == "manga" else MediaType.ANIME
+            elif dm3:
+                print("dm3")
+                delete_term = dm3.group(1)
 
             result["term"] = delete_term.strip(" '\"")
 
