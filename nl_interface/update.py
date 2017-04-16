@@ -188,7 +188,7 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
             if manga_entry.series_volumes.get_text() != "0":
                 xml_field_tags += xml_tag_format.format("volume", manga_entry.series_volumes.get_text())
 
-        if new_status not in [1, 2]:
+        if new_status != 2:
             xml_field_tags += xml_tag_format.format(field_type, new_value)
 
         # form the xml string
