@@ -107,106 +107,106 @@ def process_query(query):
         print_msg("Bye bye!")
         sys.exit()
 
-    if process_result["extra"] == query_processing.Extras.GREETING:
-        greetings = ["Hi", "Hello", "Yo"]
-        print_msg("{}, {}".format(random.choice(greetings), credentials[0]))
-    elif process_result["extra"] == query_processing.Extras.THANKS:
-        thanks = ["No problem", "You're welcome", "Any time", "You are very welcome"]
-        print_msg("{} :D".format(random.choice(thanks)))
-
-    # search queries
-    if process_result["operation"] == query_processing.OperationType.SEARCH:
-        if process_result["type"] == query_processing.MediaType.ANIME:
-            search.search(credentials, "anime", process_result["term"])
-
-        elif process_result["type"] == query_processing.MediaType.MANGA:
-            search.search(credentials, "manga", process_result["term"])
-
-    # update queries
-    elif process_result["operation"] == query_processing.OperationType.UPDATE:
-        if process_result["type"] == query_processing.MediaType.ANIME:
-            if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
-                if process_result["value"] == query_processing.StatusType.WATCHING:
-                    update.update_anime_list_entry(credentials, "status", process_result["term"], 1)
-                elif process_result["value"] == query_processing.StatusType.COMPLETED:
-                    update.update_anime_list_entry(credentials, "status", process_result["term"], 2)
-                elif process_result["value"] == query_processing.StatusType.ON_HOLD:
-                    update.update_anime_list_entry(credentials, "status", process_result["term"], 3)
-                elif process_result["value"] == query_processing.StatusType.DROPPED:
-                    update.update_anime_list_entry(credentials, "status", process_result["term"], 4)
-                elif process_result["value"] == query_processing.StatusType.PLAN_TO_WATCH:
-                    update.update_anime_list_entry(credentials, "status", process_result["term"], 6)
-
-            elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
-                if process_result["value"] is None:
-                    print_msg("I'm sorry, but the new score value must be between 1 and 10.")
-                else:
-                    update.update_anime_list_entry(credentials, "score", process_result["term"],
-                                                   process_result["value"])
-
-            elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
-                update.update_anime_list_entry(credentials, "episode", process_result["term"], process_result["value"])
-
-        elif process_result["type"] == query_processing.MediaType.MANGA:
-            if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
-                if process_result["value"] == query_processing.StatusType.READING:
-                    update.update_manga_list_entry(credentials, "status", process_result["term"], 1)
-                elif process_result["value"] == query_processing.StatusType.COMPLETED:
-                    update.update_manga_list_entry(credentials, "status", process_result["term"], 2)
-                elif process_result["value"] == query_processing.StatusType.ON_HOLD:
-                    update.update_manga_list_entry(credentials, "status", process_result["term"], 3)
-                elif process_result["value"] == query_processing.StatusType.DROPPED:
-                    update.update_manga_list_entry(credentials, "status", process_result["term"], 4)
-                elif process_result["value"] == query_processing.StatusType.PLAN_TO_READ:
-                    update.update_manga_list_entry(credentials, "status", process_result["term"], 6)
-
-            elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
-                if process_result["value"] is None:
-                    print_msg("I'm sorry, but the new score value must be between 1 and 10.")
-                else:
-                    update.update_manga_list_entry(credentials, "score", process_result["term"],
-                                                   process_result["value"])
-
-            elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
-                update.update_manga_list_entry(credentials, "chapter", process_result["term"], process_result["value"])
-
-            elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
-                update.update_manga_list_entry(credentials, "volume", process_result["term"], process_result["value"])
-
-    elif process_result["operation"] == query_processing.OperationType.UPDATE_INCREMENT:
-        if process_result["type"] == query_processing.MediaType.ANIME:
-            update.update_anime_list_entry(credentials, "episode", process_result["term"])
-
-        elif process_result["type"] == query_processing.MediaType.MANGA:
-            if process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
-                update.update_manga_list_entry(credentials, "chapter", process_result["term"])
-
-            elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
-                update.update_manga_list_entry(credentials, "volume", process_result["term"])
-
-    # add queries
-    elif process_result["operation"] == query_processing.OperationType.ADD:
-        if process_result["type"] == query_processing.MediaType.ANIME:
-            add.add_entry(credentials, "anime", process_result["term"])
-
-        elif process_result["type"] == query_processing.MediaType.MANGA:
-            add.add_entry(credentials, "manga", process_result["term"])
-
-    # delete queries
-    elif process_result["operation"] == query_processing.OperationType.DELETE:
-        if process_result["type"] == query_processing.MediaType.ANIME:
-            delete.delete_entry(credentials, "anime", process_result["term"])
-
-        elif process_result["type"] == query_processing.MediaType.MANGA:
-            delete.delete_entry(credentials, "manga", process_result["term"])
-
-    elif process_result["operation"] == query_processing.OperationType.VIEW_LIST:
-        if process_result["type"] == query_processing.MediaType.ANIME:
-            update.view_list(credentials[0], "anime")
-
-        elif process_result["type"] == query_processing.MediaType.MANGA:
-            update.view_list(credentials[0], "manga")
-
-    # if the system failed to understand the query
-    elif process_result["extra"] is None:
-        print_failure()
+    # if process_result["extra"] == query_processing.Extras.GREETING:
+    #     greetings = ["Hi", "Hello", "Yo"]
+    #     print_msg("{}, {}".format(random.choice(greetings), credentials[0]))
+    # elif process_result["extra"] == query_processing.Extras.THANKS:
+    #     thanks = ["No problem", "You're welcome", "Any time", "You are very welcome"]
+    #     print_msg("{} :D".format(random.choice(thanks)))
+    #
+    # # search queries
+    # if process_result["operation"] == query_processing.OperationType.SEARCH:
+    #     if process_result["type"] == query_processing.MediaType.ANIME:
+    #         search.search(credentials, "anime", process_result["term"])
+    #
+    #     elif process_result["type"] == query_processing.MediaType.MANGA:
+    #         search.search(credentials, "manga", process_result["term"])
+    #
+    # # update queries
+    # elif process_result["operation"] == query_processing.OperationType.UPDATE:
+    #     if process_result["type"] == query_processing.MediaType.ANIME:
+    #         if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
+    #             if process_result["value"] == query_processing.StatusType.WATCHING:
+    #                 update.update_anime_list_entry(credentials, "status", process_result["term"], 1)
+    #             elif process_result["value"] == query_processing.StatusType.COMPLETED:
+    #                 update.update_anime_list_entry(credentials, "status", process_result["term"], 2)
+    #             elif process_result["value"] == query_processing.StatusType.ON_HOLD:
+    #                 update.update_anime_list_entry(credentials, "status", process_result["term"], 3)
+    #             elif process_result["value"] == query_processing.StatusType.DROPPED:
+    #                 update.update_anime_list_entry(credentials, "status", process_result["term"], 4)
+    #             elif process_result["value"] == query_processing.StatusType.PLAN_TO_WATCH:
+    #                 update.update_anime_list_entry(credentials, "status", process_result["term"], 6)
+    #
+    #         elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
+    #             if process_result["value"] is None:
+    #                 print_msg("I'm sorry, but the new score value must be between 1 and 10.")
+    #             else:
+    #                 update.update_anime_list_entry(credentials, "score", process_result["term"],
+    #                                                process_result["value"])
+    #
+    #         elif process_result["modifier"] == query_processing.UpdateModifier.EPISODE:
+    #             update.update_anime_list_entry(credentials, "episode", process_result["term"], process_result["value"])
+    #
+    #     elif process_result["type"] == query_processing.MediaType.MANGA:
+    #         if process_result["modifier"] == query_processing.UpdateModifier.STATUS:
+    #             if process_result["value"] == query_processing.StatusType.READING:
+    #                 update.update_manga_list_entry(credentials, "status", process_result["term"], 1)
+    #             elif process_result["value"] == query_processing.StatusType.COMPLETED:
+    #                 update.update_manga_list_entry(credentials, "status", process_result["term"], 2)
+    #             elif process_result["value"] == query_processing.StatusType.ON_HOLD:
+    #                 update.update_manga_list_entry(credentials, "status", process_result["term"], 3)
+    #             elif process_result["value"] == query_processing.StatusType.DROPPED:
+    #                 update.update_manga_list_entry(credentials, "status", process_result["term"], 4)
+    #             elif process_result["value"] == query_processing.StatusType.PLAN_TO_READ:
+    #                 update.update_manga_list_entry(credentials, "status", process_result["term"], 6)
+    #
+    #         elif process_result["modifier"] == query_processing.UpdateModifier.SCORE:
+    #             if process_result["value"] is None:
+    #                 print_msg("I'm sorry, but the new score value must be between 1 and 10.")
+    #             else:
+    #                 update.update_manga_list_entry(credentials, "score", process_result["term"],
+    #                                                process_result["value"])
+    #
+    #         elif process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
+    #             update.update_manga_list_entry(credentials, "chapter", process_result["term"], process_result["value"])
+    #
+    #         elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
+    #             update.update_manga_list_entry(credentials, "volume", process_result["term"], process_result["value"])
+    #
+    # elif process_result["operation"] == query_processing.OperationType.UPDATE_INCREMENT:
+    #     if process_result["type"] == query_processing.MediaType.ANIME:
+    #         update.update_anime_list_entry(credentials, "episode", process_result["term"])
+    #
+    #     elif process_result["type"] == query_processing.MediaType.MANGA:
+    #         if process_result["modifier"] == query_processing.UpdateModifier.CHAPTER:
+    #             update.update_manga_list_entry(credentials, "chapter", process_result["term"])
+    #
+    #         elif process_result["modifier"] == query_processing.UpdateModifier.VOLUME:
+    #             update.update_manga_list_entry(credentials, "volume", process_result["term"])
+    #
+    # # add queries
+    # elif process_result["operation"] == query_processing.OperationType.ADD:
+    #     if process_result["type"] == query_processing.MediaType.ANIME:
+    #         add.add_entry(credentials, "anime", process_result["term"])
+    #
+    #     elif process_result["type"] == query_processing.MediaType.MANGA:
+    #         add.add_entry(credentials, "manga", process_result["term"])
+    #
+    # # delete queries
+    # elif process_result["operation"] == query_processing.OperationType.DELETE:
+    #     if process_result["type"] == query_processing.MediaType.ANIME:
+    #         delete.delete_entry(credentials, "anime", process_result["term"])
+    #
+    #     elif process_result["type"] == query_processing.MediaType.MANGA:
+    #         delete.delete_entry(credentials, "manga", process_result["term"])
+    #
+    # elif process_result["operation"] == query_processing.OperationType.VIEW_LIST:
+    #     if process_result["type"] == query_processing.MediaType.ANIME:
+    #         update.view_list(credentials[0], "anime")
+    #
+    #     elif process_result["type"] == query_processing.MediaType.MANGA:
+    #         update.view_list(credentials[0], "manga")
+    #
+    # # if the system failed to understand the query
+    # elif process_result["extra"] is None:
+    #     print_failure()
