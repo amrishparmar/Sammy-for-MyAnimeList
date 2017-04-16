@@ -217,8 +217,8 @@ def process(query):
         # rules for add requests
 
         add_syns = "|".join(synonyms.actions["add"])
-        am1 = re.search("(?:{}) (?:the )(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga))".format(add_syns), query)
-        am2 = re.search("(?:{}) (?:the )(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga)? ?list)"
+        am1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga))".format(add_syns), query)
+        am2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga)? ?list)"
                         .format(add_syns), query)
         am3 = re.search("(?:{}) (.+)".format(add_syns), query)
 
@@ -242,9 +242,10 @@ def process(query):
     elif action == OperationType.DELETE:
         delete_syns = "|".join(synonyms.actions["delete"])
 
-        dm1 = re.search("(?:{}) (?:the )(.+?)(?: (?:off )?(?:from )?(?:my )?(anime|manga))".format(delete_syns), query)
-        dm2 = re.search("(?:{}) (?:the )(.+?)(?: (?:off )?(?:from )?(?:my )?(anime|manga)? ?list)".format(delete_syns),
+        dm1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:off )?(?:(?:from|of) )?(?:my )?(anime|manga))".format(delete_syns),
                         query)
+        dm2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:off )?(?:(?:from|of) )?(?:my )?(anime|manga)? ?list)"
+                        .format(delete_syns), query)
         dm3 = re.search("(?:{}) (.+)".format(delete_syns), query)
 
         if dm1 or dm2 or dm3:
