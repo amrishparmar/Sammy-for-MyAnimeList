@@ -188,9 +188,10 @@ def process(query):
         search_syns = "|".join(synonyms.actions["search"])
         info_syns = "|".join(synonyms.terms["information"])
 
-        sm1 = re.search("(?:{}) (?:(?:for|on) (?:the )?)?(?:{}) (?:(?:for|on) (?:the )?)?(.+)".format(
-                        search_syns, info_syns), query)
-        sm2 = re.search("(?:{}) (?:(?:for|on) )?(?:the )?(.+)".format(search_syns + "|" + info_syns), query)
+        sm1 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of) (?:the )?)?(?:{}) (?:(?:for|on|of) "
+                        "(?:the )?)?(.+)".format(search_syns, info_syns), query)
+        sm2 = re.search("(?:{}) (?:(?:me|us) )?(?:(?:for|on|of) )?(?:the )?(.+)".format(search_syns + "|" + info_syns),
+                        query)
         sm3 = re.search("(?:{}) (.+)".format(search_syns), query)
 
         if sm1 or sm2 or sm3:
@@ -412,7 +413,7 @@ def process(query):
     elif action == OperationType.VIEW_LIST:
         viewlist_syns = "|".join(synonyms.actions["view_list"])
 
-        vl1 = re.search("(?:{}) (?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
+        vl1 = re.search("(?:{}) (?:me|us)?(?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
 
         if vl1:
             result["operation"] = OperationType.VIEW_LIST
