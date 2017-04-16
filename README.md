@@ -27,13 +27,13 @@ To run from source, the following are required:
 - [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)
 
 ### Running the application
-For the menu-driven interface run the following from the root of the project:
-```
-python menuinterface
-```
 For the natural language interface run the following from the root of the project:
 ```
 python nl_interface
+```
+For the menu-driven interface run the following from the root of the project:
+```
+python menuinterface
 ```
 
 You may need to replace `python` with `python3` in the commands above to run the correct version of Python, particularly on some Mac/Linux configurations.

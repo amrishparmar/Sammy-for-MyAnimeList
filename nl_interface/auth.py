@@ -33,11 +33,12 @@ def validate_credentials(credentials):
     """Verify the validity of a pair of credentials
 
     :param credentials: A tuple of strings in the form (username, password)
-    :return: If successful, a tuple containing strings in format (username, password) error code otherwise
+    :return: A network.StatusCode enum value
     """
-
+    # prepare the url
     url = "https://myanimelist.net/api/account/verify_credentials.xml"
 
+    # send the async add request to the server
     r = ui.threaded_action(network.make_request, msg="Authenticating", request=requests.get, url=url, auth=credentials)
 
     if r == network.StatusCode.CONNECTION_ERROR:

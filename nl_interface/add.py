@@ -14,9 +14,7 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
     :param entry_type: A string, must be either "anime" or "manga"
     :param search_string: A string, the anime or manga the user wants to add to their list
     :param entry: A beautiful soup tag, an entry to add
-    :return: None, if the user cancelled
     """
-
     if entry_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(entry_type, "anime", "manga"))
 
@@ -27,21 +25,27 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         # search the database for the anime/manga the user wants added
         entry = search.search(credentials, entry_type, search_string, display_details=False)
 
+        # if a valid entry entry wasn't returned
         if entry == search.StatusCode.NO_RESULTS or entry == search.StatusCode.USER_CANCELLED \
                 or entry == network.StatusCode.CONNECTION_ERROR or entry == network.StatusCode.OTHER_ERROR:
             return
 
+    # the format of an XML tag
     xml_tag_format = "<{0}>{1}</{0}>"
+
+    # the tags that add to the XML string
     xml_field_tags = ""
 
     # get the choice of status
     status = helpers.get_status_choice_from_user(entry_type, skip_option=False)
 
+    # if not plan to read
     if status != 6:
         # append the status tag to our xml string if the user didn't opt to skip
         xml_field_tags += xml_tag_format.format("status", status)
 
         if entry_type == "anime":
+            # if status is completed
             if status == 2:
                 episodes = entry.episodes.get_text()
             else:
@@ -52,6 +56,7 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
             if episodes is not None:
                 xml_field_tags += xml_tag_format.format("episode", episodes)
         else:
+            # if status is completed
             if status == 2:
                 chapters = entry.chapters.get_text()
                 volumes = entry.volumes.get_text()
@@ -73,16 +78,17 @@ def add_entry(credentials, entry_type, search_string=None, entry=None):
         if score is not None:
             xml_field_tags += xml_tag_format.format("score", score)
 
-        # form the xml string
+        # form the XML string
         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
 
         # prepare the url
         url = "https://myanimelist.net/api/{}list/add/{}.xml".format(entry_type, entry.id.get_text())
 
-        # send the async add request to the server
+        # send the async add request to the server, use GET due to a bug with POST requests
         r = ui.threaded_action(network.make_request, msg="Adding", request=requests.get, url=url, params={"data": xml},
                                auth=credentials)
 
+        # if there was a connection error
         if r == network.StatusCode.CONNECTION_ERROR:
             agent.print_connection_error_msg()
             return

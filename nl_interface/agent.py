@@ -188,6 +188,7 @@ def process_query(query):
             # update manga volume count
             elif process_result["modifier"] == qp.UpdateModifier.VOLUME:
                 update.update_manga_list_entry(credentials, "volume", process_result["term"], process_result["value"])
+
     # increment counts for list entries
     elif process_result["operation"] == qp.OperationType.UPDATE_INCREMENT:
         # increment episode count for anime
