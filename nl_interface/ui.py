@@ -30,7 +30,7 @@ def threaded_action(action, msg="Loading", *args, **kwds):
     while not async_result.ready():
         loading_animation(msg)
 
-    click.echo("\r{}...Done".format(msg))
+    click.echo("\r{}...Finished".format(msg))
 
     return async_result.get()
 

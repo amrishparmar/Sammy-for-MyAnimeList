@@ -8,14 +8,16 @@ actions = {
 }
 
 terms = {
+    # extras
     "hello": ["hello", "hi", "hey", "yo"],
     "thank you": ["thank you", "thanks", "cheers", "gracias", "merci", "danke"],
     "exit": ["exit", "quit", "leave", "goodbye", "bye", "bye bye", "adios", "so long"],
+    # information
     "information": ["information", "info", "data", "details", "deets"],
-    # "anime": ["anime", "movie", "tv show", "show", "ova", "tv", "special", "ona"],
-    # "manga": ["manga", "novel", "one-shot", "one shot", "doujinshi", "manhwa", "manhua"]
+    # list update categories
     "score": ["score", "rating", "rate"],
     "status": ["status"],
+    # list statuses
     "watching": ["watching", "watch"],
     "reading": ["reading", "read"],
     "dropped": ["dropped", "drop"],
@@ -23,5 +25,9 @@ terms = {
     "on hold": ["on hold", "on-hold", "onhold", "hold"],
     "plan to watch": ["plan to watch", "planning to watch"],
     "plan to read": ["plan to watch", "planning to watch"],
-    "plan": ["plan", "planning"]
+    "plan": ["plan", "planning"],
+    # general
+    "chapter": ["chapter", "chap"],
+    "volume": ["volume", "vol"],
+    "episode": ["episode", "ep"]
 }

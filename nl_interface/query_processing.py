@@ -25,6 +25,7 @@ class UpdateModifier(Enum):
 
 
 class StatusType(Enum):
+    """An Enum representing the entry status the user want to update to"""
     WATCHING = 0
     READING = 1
     COMPLETED = 2
@@ -41,6 +42,7 @@ class MediaType(Enum):
 
 
 class Extras(Enum):
+    """An Enum for commands that aren't MAL-related"""
     GREETING = 0
     THANKS = 1
     EXIT = 2
@@ -63,9 +65,11 @@ def strip_info(term):
     :param term: A string, the term to remove info from
     :return: A string, the trimmed word or the original if info synonym is not present
     """
+    # split the query term into tokens
     tokens = term.split()
 
     try:
+        # get the index of a synonym for "information" (raises exception if not in there)
         index = synonyms.terms["information"].index(tokens[-1])
         return term.rstrip(synonyms.terms["information"][index])
     except ValueError:
@@ -76,10 +80,12 @@ def strip_type(term):
     """Remove the word "anime" or "manga" from the end of a string and return the result
     
     :param term: A string, the term to remove media type from
-    :return: A tuple (string, MediaType.VALUE), the trimmed word and the type of media 
-             or the original and None if no modifications made 
+    :return: A tuple (string, MediaType.VALUE), the trimmed word and the type of media or the original 
+             and None if no modifications made 
     """
+    # split the query term into tokens
     tokens = term.split()
+
     if tokens[-1] == "anime":
         return term[:-6], MediaType.ANIME
     elif tokens[-1] == "manga":
@@ -96,33 +102,35 @@ def determine_action(query):
     :param query: A string, the normalised user query
     :return: An OperationType enum, the action to perform
     """
+    # a list of tuples with action terms found in the query in the form (action, index of action term)
     action_term_orders = []
 
-    # loop over all of the action categories
-    for action in synonyms.actions.keys():
-        # loop over all of the synonyms for that action until we find a match
-        for syn in synonyms.actions[action]:
-            try:
-                index = query.index(syn)
-                action_term_orders.append((action, index))
-                break
-            except ValueError:
-                continue
+    def match_syns(syns, term_orders, ac):
+        """Loop over a list of synonyms and append the index and action to a term orders list if in the query
+        
+        :param syns: The list of synonyms
+        :param term_orders: A list of action term orders
+        :param ac: A string, the name of the action
+        """
+        for syn in syns:
+            if syn in query:
+                term_orders.append((ac, query.index(syn)))
+                return
 
-    for info_syn in synonyms.terms["information"]:
-        try:
-            index = query.index(info_syn)
-            action_term_orders.append(("information", index))
-            break
-        except ValueError:
-            continue
+    # loop over all of the action categories
+    for action in synonyms.actions:
+        # loop over all of the synonyms for that action until we find a match
+        match_syns(synonyms.actions[action], action_term_orders, action)
+
+    # loop over the synonyms of information (as can be used as an alias for search)
+    match_syns(synonyms.terms["information"], action_term_orders, "information")
 
     if action_term_orders:
         # sort them by index first, then alphabetically
         action_term_orders = sorted(action_term_orders, key=lambda x: (x[1], x[0]))
         if len(action_term_orders) == 2:
             # check if the two lowest indices are the same
-            # this will happen if the same keyword exists in two categories
+            # this will happen if the same (or part of the same) keyword exists in two categories
             if action_term_orders[0][1] == action_term_orders[1][1]:
                 if action_term_orders[0][0] == "delete" and action_term_orders[1][0] == "search":
                     return OperationType.DELETE
@@ -137,7 +145,10 @@ def determine_action(query):
                         return OperationType.SEARCH
 
         elif len(action_term_orders) == 3:
-            if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "update" and action_term_orders[2][0] == "view_list":
+            # check if the three lowest indices are the same
+            # this will happen if the same (or part of the same) keyword exists in three categories
+            if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "update" \
+                    and action_term_orders[2][0] == "view_list":
                 if query.split()[-1] == "list":
                     return OperationType.VIEW_LIST
                 else:
@@ -160,31 +171,38 @@ def process(query):
     """Process the user query and return a dictionary with the result
 
     :param query: A string, the user query
-    :return: A dictionary, the result of the query processing
+    :return: A dictionary, the result of the query processing or Extras.EXIT if the user wants to quit
     """
+    # normalise the user query
     query = normalise(query)
 
+    # the user wants to quit
     if query in synonyms.terms["exit"]:
         return Extras.EXIT
 
-    result = {"operation": None,
-              "type": MediaType.ANIME,
-              "term": "",
-              "modifier": None,
-              "value": None,
-              "extra": None}
+    # the dictionary that will be returned with all
+    result = {
+        "operation": None,          # the operation to carry out
+        "type": MediaType.ANIME,    # the type of media; anime or manga, default: anime
+        "term": "",                 # the search term for the operation type
+        "modifier": None,           # a modifier for operation type
+        "value": None,              # an additional value to set for the operation
+        "extra": None               # extra content, e.g. for greetings
+    }
 
-    if re.search("(?:{}).*".format("|".join(synonyms.terms["hello"])), query):
+    # the user said hello or thank you
+    if re.search("(?:{})".format("|".join(synonyms.terms["hello"])), query):
         result["extra"] = Extras.GREETING
-    elif re.search("(?:{}).*".format("|".join(synonyms.terms["thank you"])), query):
+    elif re.search("(?:{})".format("|".join(synonyms.terms["thank you"])), query):
         result["extra"] = Extras.THANKS
 
     # determine the likely type of action the user intended
     action = determine_action(query)
 
     if action == OperationType.SEARCH:
-        # rules for search requests
+        # evaluate query using rules for search requests
 
+        # convert list of search and info syns to a string separated by | chars
         search_syns = "|".join(synonyms.actions["search"])
         info_syns = "|".join(synonyms.terms["information"])
 
@@ -194,53 +212,56 @@ def process(query):
                         query)
         sm3 = re.search("(?:{}) (.+)".format(search_syns), query)
 
+        # if one of the rules matched
         if sm1 or sm2 or sm3:
             result["operation"] = OperationType.SEARCH
-            search_term = ""
+
             if sm1:
                 search_term = sm1.group(1)
-                print("sm1")
             elif sm2:
                 search_term = strip_info(sm2.group(1))
-                print("sm2")
-            elif sm3:
+            else:
                 search_term = strip_info(sm3.group(1))
-                print("sm3")
 
+            # remove quotes or spaces from the term and get the media type
             search_terms_stripped_tuple = strip_type(search_term.strip(" '\""))
 
+            # if there was a valid media type
             if search_terms_stripped_tuple[1] is not None:
                 result["type"] = search_terms_stripped_tuple[1]
 
             result["term"] = search_terms_stripped_tuple[0]
 
     elif action == OperationType.ADD:
-        # rules for add requests
+        # evaluate query using rules for add requests
 
+        # convert list of add syns to a string separated by | chars
         add_syns = "|".join(synonyms.actions["add"])
+
         am1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga))".format(add_syns), query)
         am2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga)? ?list)"
                         .format(add_syns), query)
         am3 = re.search("(?:{}) (.+)".format(add_syns), query)
 
+        # if one of the rules matched
         if am1 or am2 or am3:
             result["operation"] = OperationType.ADD
-            add_term = ""
+
             if am1:
-                print("am1")
                 add_term = am1.group(1)
                 result["type"] = MediaType.MANGA if am1.group(2) == "manga" else MediaType.ANIME
             elif am2:
-                print("am2")
                 add_term = am2.group(1)
                 result["type"] = MediaType.MANGA if am2.group(2) == "manga" else MediaType.ANIME
-            elif am3:
-                print("am3")
+            else:
                 add_term = am3.group(1)
 
             result["term"] = add_term.strip(" '\"")
 
     elif action == OperationType.DELETE:
+        # evaluate query using rules for delete requests
+
+        # convert list of add syns to a string separated by | chars
         delete_syns = "|".join(synonyms.actions["delete"])
 
         dm1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:off )?(?:(?:from|of) )?(?:my )?(anime|manga))".format(delete_syns),
@@ -249,28 +270,31 @@ def process(query):
                         .format(delete_syns), query)
         dm3 = re.search("(?:{}) (.+)".format(delete_syns), query)
 
+        # if one of the rules matched
         if dm1 or dm2 or dm3:
             result["operation"] = OperationType.DELETE
-            delete_term = ""
-            if dm1:
-                print("dm1")
-                delete_term = dm1.group(1)
-                result["type"] = MediaType.MANGA if dm1.group(2) == "manga" else MediaType.ANIME
-            elif dm2:
-                print("dm2")
-                delete_term = dm2.group(1)
-                result["type"] = MediaType.MANGA if dm2.group(2) == "manga" else MediaType.ANIME
-            elif dm3:
-                print("dm3")
-                delete_term = dm3.group(1)
 
-            result["term"] = delete_term.strip(" '\"")
+            def assign_delete_vals(type_group, term_group):
+                """Assign the type and term of the match groups to result"""
+                result["type"] = MediaType.MANGA if type_group == "manga" else MediaType.ANIME
+                result["term"] = term_group.strip(" '\"")
+
+            if dm1:
+                assign_delete_vals(dm1.group(2), dm1.group(1))
+            elif dm2:
+                assign_delete_vals(dm2.group(2), dm2.group(1))
+            else:
+                assign_delete_vals("anime", dm3.group(1))
 
     elif action == OperationType.UPDATE or action == OperationType.UPDATE_INCREMENT:
+        # evaluate query using rules for update requests
+
+        # convert list of update syns to a string separated by | chars
         update_syns = "|".join(synonyms.actions["update"])
 
         # increment updates
 
+        # convert list of increment syns to a string separated by | chars
         increment_syns = "|".join(synonyms.actions["increment"])
 
         inc1 = re.search("(?:{}) (?:the )?(?:count )?(?:(?:for|on) )?(?:the )?(.+ ?) (anime|manga)"
@@ -278,25 +302,24 @@ def process(query):
         inc2 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:for|on) )?(.+)"
                          .format(increment_syns), query)
 
+        # if one of the rules matched
         if inc1 or inc2:
             result["operation"] = OperationType.UPDATE_INCREMENT
 
             if inc1:
-                print("inc1")
                 if inc1.group(2) == "manga":
                     result["modifier"] = UpdateModifier.CHAPTER
                     result["type"] = MediaType.MANGA
                 else:
                     result["modifier"] = UpdateModifier.EPISODE
 
-                result["term"] = inc1.group(1)
+                result["term"] = inc1.group(1).strip(" '\"")
 
             elif inc2:
-                print("inc2")
-                if inc2.group(1) in ["chapter", "chap"]:
+                if inc2.group(1) in synonyms.terms["chapter"]:
                     result["modifier"] = UpdateModifier.CHAPTER
                     result["type"] = MediaType.MANGA
-                elif inc2.group(1) in ["volume", "vol"]:
+                elif inc2.group(1) in synonyms.terms["volume"]:
                     result["modifier"] = UpdateModifier.VOLUME
                     result["type"] = MediaType.MANGA
                 else:
@@ -310,40 +333,34 @@ def process(query):
                          "(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + "|" + increment_syns), query)
         cnt2 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?"
                          "(?:(?:for|on) )?(.+?) (?:to )?(\d+)".format(update_syns + "|" + increment_syns), query)
-        
+
+        # if one of the rules matched
         if cnt1 or cnt2:
             result["operation"] = OperationType.UPDATE
 
+            def assign_count_vals(modifier_group, term_group, value_group):
+                """Assign the modifier, term and value of the match groups to result"""
+                if modifier_group in synonyms.terms["chapter"]:
+                    result["modifier"] = UpdateModifier.CHAPTER
+                    result["type"] = MediaType.MANGA
+                elif modifier_group in synonyms.terms["volume"]:
+                    result["modifier"] = UpdateModifier.VOLUME
+                    result["type"] = MediaType.MANGA
+                else:
+                    result["modifier"] = UpdateModifier.EPISODE
+
+                result["term"] = term_group.strip(" '\"")
+                result["value"] = int(value_group)
+
             if cnt1:
-                print("cnt1")
-                if cnt1.group(1) in ["chapter", "chap"]:
-                    result["modifier"] = UpdateModifier.CHAPTER
-                    result["type"] = MediaType.MANGA
-                elif cnt1.group(1) in ["volume", "vol"]:
-                    result["modifier"] = UpdateModifier.VOLUME
-                    result["type"] = MediaType.MANGA
-                else:
-                    result["modifier"] = UpdateModifier.EPISODE
+                assign_count_vals(cnt1.group(1), cnt1.group(3), cnt1.group(2))
 
-                result["term"] = cnt1.group(3).strip(" '\"")
-                result["value"] = int(cnt1.group(2))
-
-            elif cnt2:
-                print("cnt2")
-                if cnt2.group(1) in ["chapter", "chap"]:
-                    result["modifier"] = UpdateModifier.CHAPTER
-                    result["type"] = MediaType.MANGA
-                elif cnt2.group(1) in ["volume", "vol"]:
-                    result["modifier"] = UpdateModifier.VOLUME
-                    result["type"] = MediaType.MANGA
-                else:
-                    result["modifier"] = UpdateModifier.EPISODE
-
-                result["term"] = cnt2.group(2).strip(" '\"")
-                result["value"] = int(cnt2.group(3))
+            else:
+                assign_count_vals(cnt2.group(1), cnt2.group(2), cnt2.group(3))
 
         # score updates
 
+        # convert list of score syns to a string separated by | chars
         score_syns = "|".join(synonyms.terms["score"])
 
         scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:(?:{1}) )(?:(?:on|of) )?(?:the )?(?:({2}) )?(.+?) (?:({2}) )?"
@@ -351,24 +368,29 @@ def process(query):
         scu2 = re.search("(?:{0}) (?:(?:the|my) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a )?(?:(?:{1}) )"
                          "(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
 
+        # if one of the rules matched
         if scu1 or scu2:
             result["operation"] = OperationType.UPDATE
             result["modifier"] = UpdateModifier.SCORE
+
+            def assign_score_vals(type_groups, term_group, value_group):
+                if type_groups[0] == "manga" or type_groups[1] == "manga":
+                    result["type"] = MediaType.MANGA
+                else:
+                    result["type"] = MediaType.ANIME
+
+                result["term"] = term_group.strip(" '\"")
+                result["value"] = int(value_group)
+
             if scu1:
-                print("scu1")
-                if scu1.group(1) == "manga" or scu1.group(3) == "manga":
-                    result["type"] = MediaType.MANGA
-                result["term"] = scu1.group(2).strip(" '\"")
-                result["value"] = int(scu1.group(4))
-            elif scu2:
-                print("scu2")
-                if scu2.group(1) == "manga" or scu2.group(3) == "manga":
-                    result["type"] = MediaType.MANGA
-                result["term"] = scu2.group(2).strip(" '\"")
-                result["value"] = int(scu2.group(4))
+                assign_score_vals((scu1.group(1), scu1.group(3)), scu1.group(2), scu1.group(4))
+
+            else:
+                assign_score_vals((scu2.group(1), scu2.group(3)), scu2.group(2), scu2.group(4))
 
         # status updates
 
+        # convert list of status syns to a string separated by | chars
         status_syns = "|".join(synonyms.terms["status"])
 
         sts1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
@@ -376,6 +398,7 @@ def process(query):
                          "|finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
                          .format(update_syns, status_syns, "anime|manga"), query)
 
+        # if one of the rules matched
         if sts1:
             result["operation"] = OperationType.UPDATE
             result["modifier"] = UpdateModifier.STATUS
@@ -383,6 +406,8 @@ def process(query):
 
             if sts1.group(2) == "manga" or sts1.group(4) == "manga":
                 result["type"] = MediaType.MANGA
+            else:
+                result["type"] = MediaType.ANIME
 
             status = sts1.group(6)
 
@@ -411,6 +436,9 @@ def process(query):
                     result["value"] = StatusType.PLAN_TO_READ
 
     elif action == OperationType.VIEW_LIST:
+        # evaluate query using rules for view list requests
+
+        # convert list of view list syns to a string separated by | chars
         viewlist_syns = "|".join(synonyms.actions["view_list"])
 
         vl1 = re.search("(?:{}) (?:me|us)?(?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
@@ -421,4 +449,5 @@ def process(query):
             if vl1.group(1) == "manga":
                 result["type"] = MediaType.MANGA
 
+    # return the filled out dictionary
     return result

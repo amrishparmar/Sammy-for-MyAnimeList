@@ -39,7 +39,6 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
     if anime_entry == ListSearchStatusCode.USER_CANCELLED:
         agent.print_msg("I have cancelled the operation. Nothing was changed.")
         return
-
     elif anime_entry == network.StatusCode.CONNECTION_ERROR or anime_entry == network.StatusCode.OTHER_ERROR \
             or anime_entry == ListSearchStatusCode.NO_RESULTS:
         return
@@ -74,8 +73,10 @@ def update_anime_list_entry(credentials, field_type, search_string, new_value=No
 
         xml_field_tags += xml_tag_format.format(field_type, new_value)
 
-        # prepare xml data and url for sending to server
+        # form the XML string
         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
+
+        # prepare the URL
         url = "https://myanimelist.net/api/animelist/update/{}.xml".format(anime_entry.series_animedb_id.get_text())
 
         # send the async request to the server, uses GET due to bug in API handling POST requests
@@ -191,7 +192,7 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
         if new_status != 2:
             xml_field_tags += xml_tag_format.format(field_type, new_value)
 
-        # form the xml string
+        # form the XML string
         xml = '<?xml version="1.0" encoding="UTF-8"?><entry>{}</entry>'.format(xml_field_tags)
 
         # prepare the url
@@ -207,7 +208,7 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
 
         # inform the user whether the request was successful or not
         if r.status_code == 200:
-            updated_msg_format = "Updated \"{}\" to {} {}."
+            updated_msg_format = 'Updated "{}" to {} "{}".'
 
             updated_msg = updated_msg_format.format(manga_title, field_type, new_value)
 
@@ -215,7 +216,7 @@ def update_manga_list_entry(credentials, field_type, search_string, new_value=No
                 updated_msg = updated_msg_format.format(manga_title, field_type, MANGA_STATUS_MAP[str(new_value)])
             # check if the status was changed
             elif new_status:
-                updated_msg += " Status set to \"{}\"".format(MANGA_STATUS_MAP[str(new_status)])
+                updated_msg += ' Status set to "{}"'.format(MANGA_STATUS_MAP[str(new_status)])
 
             agent.print_msg(updated_msg)
         else:
@@ -275,7 +276,7 @@ def search_list(username, search_type, search_string):
         num_results = len(matches)
 
         if num_results == 0:
-            agent.print_msg("I could not find \"{}\" on your {} list".format(search_string, search_type))
+            agent.print_msg('I could not find "{}" on your {} list'.format(search_string, search_type))
             return ListSearchStatusCode.NO_RESULTS
         elif num_results == 1:
             return matches[0]
