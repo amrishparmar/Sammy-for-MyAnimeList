@@ -49,4 +49,3 @@ def delete_entry(credentials, entry_type, search_string):
                             .format(entry.series_title.get_text(), r.text()))
     else:
         agent.print_msg("The delete operation was cancelled. Nothing was removed from your {} list.".format(entry_type))
-

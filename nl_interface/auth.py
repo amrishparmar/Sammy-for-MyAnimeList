@@ -49,4 +49,3 @@ def validate_credentials(credentials):
         return network.StatusCode.UNAUTHORISED
     else:
         return network.StatusCode.OTHER_ERROR
-

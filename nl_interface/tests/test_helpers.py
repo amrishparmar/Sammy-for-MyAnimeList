@@ -3,11 +3,10 @@ import unittest
 from io import StringIO
 from unittest import mock
 
-from menuinterface import helpers
+from nl_interface import helpers
 
 
 class TestGetStatusChoice(unittest.TestCase):
-
     def test_valid_cases(self):
         for i in range(1, 7):
             with mock.patch('click.prompt', return_value=i):

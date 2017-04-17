@@ -33,4 +33,3 @@ def threaded_action(action, msg="Loading", *args, **kwds):
     click.echo("\r{}...Finished".format(msg))
 
     return async_result.get()
-

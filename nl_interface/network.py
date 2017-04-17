@@ -23,5 +23,3 @@ def make_request(request, *args, **kwargs):
         return request(*args, **kwargs)
     except requests.exceptions.ConnectionError:
         return StatusCode.CONNECTION_ERROR
-
-
