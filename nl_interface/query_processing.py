@@ -75,7 +75,7 @@ def strip_info(term):
     try:
         # get the index of a synonym for "information" (raises exception if not in there)
         index = synonyms.terms["information"].index(tokens[-1])
-        return term.rstrip(synonyms.terms["information"][index])
+        return " ".join(tokens[:-1])
     except ValueError:
         return term
 
@@ -87,13 +87,17 @@ def strip_type(term):
     :return: A tuple (string, MediaType.VALUE), the trimmed word and the type of media or the original 
              and None if no modifications made 
     """
+    # check that we've not passed an empty string
+    if not term:
+        return term, None
+
     # split the query term into tokens
     tokens = term.split()
 
     if tokens[-1] == "anime":
-        return term[:-6], MediaType.ANIME
+        return " ".join(tokens[:-1]), MediaType.ANIME
     elif tokens[-1] == "manga":
-        return term[:-6], MediaType.MANGA
+        return " ".join(tokens[:-1]), MediaType.MANGA
 
     return term, None
 
