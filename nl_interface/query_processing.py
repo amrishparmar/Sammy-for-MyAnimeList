@@ -65,6 +65,10 @@ def strip_info(term):
     :param term: A string, the term to remove info from
     :return: A string, the trimmed word or the original if info synonym is not present
     """
+    # check that we've not passed an empty string
+    if not term:
+        return term
+
     # split the query term into tokens
     tokens = term.split()
 
@@ -105,25 +109,24 @@ def determine_action(query):
     # a list of tuples with action terms found in the query in the form (action, index of action term)
     action_term_orders = []
 
-    def match_syns(syns, term_orders, ac):
+    def match_syns(syns, ac):
         """Loop over a list of synonyms and append the index and action to a term orders list if in the query
         
         :param syns: The list of synonyms
-        :param term_orders: A list of action term orders
         :param ac: A string, the name of the action
         """
         for syn in syns:
             if syn in query:
-                term_orders.append((ac, query.index(syn)))
+                action_term_orders.append((ac, query.index(syn)))
                 return
 
     # loop over all of the action categories
     for action in synonyms.actions:
         # loop over all of the synonyms for that action until we find a match
-        match_syns(synonyms.actions[action], action_term_orders, action)
+        match_syns(synonyms.actions[action], action)
 
     # loop over the synonyms of information (as can be used as an alias for search)
-    match_syns(synonyms.terms["information"], action_term_orders, "information")
+    match_syns(synonyms.terms["information"], "information")
 
     if action_term_orders:
         # sort them by index first, then alphabetically

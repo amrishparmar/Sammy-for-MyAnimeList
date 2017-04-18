@@ -315,7 +315,6 @@ def view_list(username, search_type):
     :param username: A valid MAL username
     :param search_type: A string, must be either "anime" or "manga"
     """
-
     if search_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
 

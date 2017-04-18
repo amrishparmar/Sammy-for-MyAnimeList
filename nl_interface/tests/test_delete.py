@@ -1,7 +1,7 @@
 import unittest
 
 from nl_interface import delete
-from .constants_for_tests import credentials
+from nl_interface.tests.constants_for_tests import credentials
 
 
 class TestDeleteEntry(unittest.TestCase):

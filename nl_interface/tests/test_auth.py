@@ -3,7 +3,7 @@ from unittest import mock
 
 from nl_interface import auth
 from nl_interface import network
-from .constants_for_tests import credentials
+from nl_interface.tests.constants_for_tests import credentials
 
 
 class TestGetUserCredentials(unittest.TestCase):
