@@ -3,6 +3,7 @@ from unittest import mock
 
 from nl_interface import auth
 from nl_interface import network
+from .constants_for_tests import credentials
 
 
 class TestGetUserCredentials(unittest.TestCase):
@@ -25,10 +26,7 @@ class TestValidateCredentials(unittest.TestCase):
         self.assertEqual(auth.validate_credentials(("username", "")).name, network.StatusCode.UNAUTHORISED.name)
 
     def test_valid_password(self):
-        # replace these with actual username and password when testing
-        username = "xxxx"
-        password = "xxxx"
-        self.assertEqual(auth.validate_credentials((username, password)).name, network.StatusCode.SUCCESS.name)
+        self.assertEqual(auth.validate_credentials(credentials).name, network.StatusCode.SUCCESS.name)
 
 
 if __name__ == '__main__':
