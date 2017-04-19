@@ -15,7 +15,7 @@ class TestUpdateMangaListEntry(unittest.TestCase):
         self.assertRaises(ValueError, update.update_manga_list_entry, credentials, "badsearchtype", "")
 
 
-class testSearchList(unittest.TestCase):
+class TestSearchList(unittest.TestCase):
     def test_invalid_search_type(self):
         self.assertRaises(ValueError, update.search_list, credentials[0], "badsearchtype", "")
 

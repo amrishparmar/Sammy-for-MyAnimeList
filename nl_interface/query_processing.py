@@ -119,10 +119,16 @@ def determine_action(query):
         :param syns: The list of synonyms
         :param ac: A string, the name of the action
         """
+        pos_syn = -1
         for syn in syns:
             if syn in query:
-                action_term_orders.append((ac, query.index(syn)))
-                return
+                ato_index = query.index(syn)
+                if pos_syn == -1:
+                    action_term_orders.append((ac, ato_index))
+                    pos_syn = len(action_term_orders) - 1
+                else:
+                    if action_term_orders[pos_syn][1] > ato_index:
+                        action_term_orders[pos_syn] = (ac, ato_index)
 
     # loop over all of the action categories
     for action in synonyms.actions:
@@ -133,6 +139,17 @@ def determine_action(query):
     match_syns(synonyms.terms["information"], "information")
 
     if action_term_orders:
+
+        string_to_operation_map = {
+            "search": OperationType.SEARCH,
+            "information": OperationType.SEARCH,
+            "update": OperationType.UPDATE,
+            "increment": OperationType.UPDATE,
+            "add": OperationType.ADD,
+            "delete": OperationType.DELETE,
+            "view_list": OperationType.VIEW_LIST
+        }
+
         # sort them by index first, then alphabetically
         action_term_orders = sorted(action_term_orders, key=lambda x: (x[1], x[0]))
         if len(action_term_orders) == 2:
@@ -142,16 +159,13 @@ def determine_action(query):
                 if action_term_orders[0][0] == "delete" and action_term_orders[1][0] == "search":
                     return OperationType.DELETE
 
-                if action_term_orders[0][0] == "increment" and action_term_orders[1][0] == "update":
-                    return OperationType.UPDATE
-
                 if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "view_list":
                     if query.split()[-1] == "list":
                         return OperationType.VIEW_LIST
                     else:
                         return OperationType.SEARCH
 
-        elif len(action_term_orders) == 3:
+        elif len(action_term_orders) >= 3:
             # check if the three lowest indices are the same
             # this will happen if the same (or part of the same) keyword exists in three categories
             if action_term_orders[0][0] == "search" and action_term_orders[1][0] == "update" \
@@ -160,16 +174,12 @@ def determine_action(query):
                     return OperationType.VIEW_LIST
                 else:
                     return OperationType.SEARCH
-
-        string_to_operation_map = {
-            "search": OperationType.SEARCH,
-            "information": OperationType.SEARCH,
-            "update": OperationType.UPDATE,
-            "increment": OperationType.UPDATE_INCREMENT,
-            "add": OperationType.ADD,
-            "delete": OperationType.DELETE,
-            "view_list": OperationType.VIEW_LIST
-        }
+            elif action_term_orders[0][0] == "delete" and action_term_orders[1][0] == "search" \
+                    and action_term_orders[2][0] == "view_list":
+                if action_term_orders[0][1] <= min([i for (_, i) in action_term_orders]) or "get rid of" in query:
+                    return OperationType.DELETE
+                else:
+                    return OperationType.VIEW_LIST
 
         return string_to_operation_map[action_term_orders[0][0]]
 
@@ -245,8 +255,8 @@ def process(query):
         # convert list of add syns to a string separated by | chars
         add_syns = "|".join(synonyms.actions["add"])
 
-        am1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga))".format(add_syns), query)
-        am2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:to|on) )?(?:my )?(anime|manga)? ?list)"
+        am1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:onto|to|on) )?(?:my )?(anime|manga))".format(add_syns), query)
+        am2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:onto|to|on) )?(?:my )?(anime|manga)? ?list)"
                         .format(add_syns), query)
         am3 = re.search("(?:{}) (.+)".format(add_syns), query)
 
@@ -293,7 +303,7 @@ def process(query):
             else:
                 assign_delete_vals("anime", dm3.group(1))
 
-    elif action == OperationType.UPDATE or action == OperationType.UPDATE_INCREMENT:
+    elif action == OperationType.UPDATE:
         # evaluate query using rules for update requests
 
         # convert list of update syns to a string separated by | chars

@@ -76,7 +76,166 @@ class TestStripType(unittest.TestCase):
 
 
 class TestDetermineAction(unittest.TestCase):
-    pass
+    def test_empty_string(self):
+        self.assertIsNone(qp.determine_action(""))
+
+    def test_search_no_ambiguity(self):
+        for syn in synonyms.actions["search"]:
+
+            strings = [
+                "{}".format(syn),
+                "{} for".format(syn),
+                "{} for test".format(syn),
+                "i want to {} for test test".format(syn)
+            ]
+
+            for s in strings:
+                self.assertEqual(qp.determine_action(s), qp.OperationType.SEARCH)
+
+    def test_search_with_ambiguity(self):
+        for ssyn in synonyms.actions["search"]:
+            for osyn in synonyms.actions["update"] + synonyms.actions["increment"] + synonyms.actions["add"] \
+                    + synonyms.actions["delete"] + synonyms.actions["view_list"]:
+
+                strings = [
+                    "{} {}".format(ssyn, osyn),
+                    "{} for {}".format(ssyn, osyn),
+                    "i want to {} for {}".format(ssyn, osyn)
+                ]
+
+                for s in strings:
+                    self.assertEqual(qp.determine_action(s), qp.OperationType.SEARCH,
+                                     "ssyn: {}, osyn: {}, s: {}".format(ssyn, osyn, s))
+
+    def test_update_no_ambiguity(self):
+        for syn in synonyms.actions["update"]:
+
+            strings = [
+                "{}".format(syn),
+                "{} test".format(syn),
+                "{} the test anime".format(syn),
+                "i want to {} the test manga".format(syn)
+            ]
+
+            for s in strings:
+                if syn != "give":
+                    self.assertEqual(qp.determine_action(s), qp.OperationType.UPDATE, "syn: {}, s: {}".format(syn, s))
+                else:
+                    self.assertEqual(qp.determine_action(s), qp.OperationType.SEARCH, "syn: {}, s: {}".format(syn, s))
+
+    def test_update_with_ambiguity(self):
+        for ssyn in synonyms.actions["update"]:
+            for osyn in synonyms.actions["search"] + synonyms.actions["increment"] + synonyms.actions["add"] \
+                    + synonyms.actions["delete"] + synonyms.actions["view_list"]:
+
+                strings = [
+                    "{} {}".format(ssyn, osyn),
+                    "{} the {} anime".format(ssyn, osyn),
+                    "i want to {} the {} manga".format(ssyn, osyn)
+                ]
+
+                for s in strings:
+                    if ssyn != "give":
+                        self.assertEqual(qp.determine_action(s), qp.OperationType.UPDATE,
+                                         "ssyn: {}, osyn: {}, s: {}".format(ssyn, osyn, s))
+                    else:
+                        self.assertEqual(qp.determine_action(s), qp.OperationType.SEARCH,
+                                         "ssyn: {}, osyn: {}, s: {}".format(ssyn, osyn, s))
+
+    def test_increment_no_ambiguity(self):
+        for syn in synonyms.actions["increment"]:
+
+            strings = [
+                "{}".format(syn),
+                "{} test".format(syn),
+                "{} the test anime".format(syn),
+                "i want to {} the test manga".format(syn)
+            ]
+
+            for s in strings:
+                self.assertEqual(qp.determine_action(s), qp.OperationType.UPDATE, "syn: {}, s: {}".format(syn, s))
+
+    def test_increment_with_ambiguity(self):
+        for ssyn in synonyms.actions["increment"]:
+            for osyn in synonyms.actions["search"] + synonyms.actions["update"] + synonyms.actions["add"] \
+                    + synonyms.actions["delete"] + synonyms.actions["view_list"]:
+
+                strings = [
+                    "{} {}".format(ssyn, osyn),
+                    "{} the {} anime".format(ssyn, osyn),
+                    "i want to {} the {} manga".format(ssyn, osyn)
+                ]
+
+                for s in strings:
+                    self.assertEqual(qp.determine_action(s), qp.OperationType.UPDATE,
+                                     "ssyn: {}, osyn: {}, s: {}".format(ssyn, osyn, s))
+
+    def test_add_no_ambiguity(self):
+        for syn in synonyms.actions["add"]:
+
+            strings = [
+                "{}".format(syn),
+                "{} test".format(syn),
+                "{} the test anime".format(syn),
+                "i want to {} the test manga onto my list".format(syn)
+            ]
+
+            for s in strings:
+                self.assertEqual(qp.determine_action(s), qp.OperationType.ADD, "syn: {}, s: {}".format(syn, s))
+
+    def test_add_with_ambiguity(self):
+        for ssyn in synonyms.actions["add"]:
+            for osyn in synonyms.actions["search"] + synonyms.actions["update"] + synonyms.actions["increment"] \
+                    + synonyms.actions["delete"] + synonyms.actions["view_list"]:
+
+                strings = [
+                    "{} {}".format(ssyn, osyn),
+                    "{} the {} anime".format(ssyn, osyn),
+                    "i want to {} the {} manga".format(ssyn, osyn)
+                ]
+
+                for s in strings:
+                    self.assertEqual(qp.determine_action(s), qp.OperationType.ADD,
+                                     "ssyn: {}, osyn: {}, s: {}".format(ssyn, osyn, s))
+
+    def test_delete_no_ambiguity(self):
+        for syn in synonyms.actions["delete"]:
+
+            strings = [
+                "{}".format(syn),
+                "{} test".format(syn),
+                "{} the test anime".format(syn),
+                "i want to {} test from my manga list".format(syn)
+            ]
+
+            for s in strings:
+                self.assertEqual(qp.determine_action(s), qp.OperationType.DELETE, "syn: {}, s: {}".format(syn, s))
+
+    def test_delete_with_ambiguity(self):
+        for ssyn in synonyms.actions["delete"]:
+            for osyn in synonyms.actions["search"] + synonyms.actions["update"] + synonyms.actions["increment"] \
+                    + synonyms.actions["add"] + synonyms.actions["view_list"]:
+
+                strings = [
+                    "{} {}".format(ssyn, osyn),
+                    "{} the {} anime".format(ssyn, osyn),
+                    "i want to {} the {} manga".format(ssyn, osyn)
+                ]
+
+                for s in strings:
+                    self.assertEqual(qp.determine_action(s), qp.OperationType.DELETE,
+                                     "ssyn: {}, osyn: {}, s: {}".format(ssyn, osyn, s))
+
+    def test_view_list(self):
+        for syn in synonyms.actions["view_list"]:
+
+            strings = [
+                "{} my anime list".format(syn),
+                "i want to {} my manga list".format(syn)
+            ]
+
+            for s in strings:
+                self.assertEqual(qp.determine_action(s), qp.OperationType.VIEW_LIST, "syn: {}, s: {}".format(syn, s))
 
 
 if __name__ == '__main__':
