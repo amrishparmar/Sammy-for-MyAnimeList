@@ -225,8 +225,8 @@ def process(query):
 
         sm1 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of) (?:the )?)?(?:{}) (?:(?:for|on|of) "
                         "(?:the )?)?(.+)".format(search_syns, info_syns), query)
-        sm2 = re.search("(?:{}) (?:(?:me|us) )?(?:(?:for|on|of) )?(?:the )?(.+)".format(search_syns + "|" + info_syns),
-                        query)
+        sm2 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of) )?(?:the )?(.+)"
+                        .format(search_syns + "|" + info_syns), query)
         sm3 = re.search("(?:{}) (.+)".format(search_syns), query)
 
         # if one of the rules matched
