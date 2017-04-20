@@ -22,7 +22,7 @@ def delete_entry(credentials, entry_type, search_string):
 
     # if a valid entry wasn't returned
     if entry is None or entry == update.ListSearchStatusCode.USER_CANCELLED \
-            or entry != update.ListSearchStatusCode.NO_RESULTS:
+            or entry == update.ListSearchStatusCode.NO_RESULTS:
         return
 
     # confirm that this is what the user intended
