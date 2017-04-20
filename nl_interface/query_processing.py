@@ -469,6 +469,8 @@ def process(query):
         if vl1:
             if vl1.group(1) == "manga":
                 result["type"] = MediaType.MANGA
+        elif query.split()[-1] == "manga":
+            result["type"] = MediaType.MANGA
 
     # return the filled out dictionary
     return result

@@ -10,7 +10,7 @@ actions = {
 terms = {
     # extras
     "hello": ["hello", "hi", "hey", "yo"],
-    "thank you": ["thank you", "thanks", "cheers", "gracias", "merci", "danke"],
+    "thank you": ["thank you", "thanks", "cheers", "gracias", "merci", "danke", "ta"],
     "exit": ["exit", "quit", "leave", "goodbye", "bye", "bye bye", "adios", "so long"],
     # information
     "information": ["information", "info", "data", "details", "deets"],
