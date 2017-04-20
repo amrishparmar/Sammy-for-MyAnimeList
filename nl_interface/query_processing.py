@@ -349,7 +349,8 @@ def process(query):
         cnt1 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:by|to) )?"
                          "(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + "|" + increment_syns), query)
         cnt2 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?"
-                         "(?:(?:for|on) )?(.+?) (?:to )?(\d+)".format(update_syns + "|" + increment_syns), query)
+                         "(?:(?:of|for) )?(.+?) (?:(?:by|to) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(\d+)"
+                         .format(update_syns + "|" + increment_syns), query)
 
         # if one of the rules matched
         if cnt1 or cnt2:
@@ -373,7 +374,10 @@ def process(query):
                 assign_count_vals(cnt1.group(1), cnt1.group(3), cnt1.group(2))
 
             else:
-                assign_count_vals(cnt2.group(1), cnt2.group(2), cnt2.group(3))
+                if cnt2.group(1) is not None:
+                    assign_count_vals(cnt2.group(1), cnt2.group(2), cnt2.group(4))
+                elif cnt2.group(3) is not None:
+                    assign_count_vals(cnt2.group(3), cnt2.group(2), cnt2.group(4))
 
         # score updates
 
