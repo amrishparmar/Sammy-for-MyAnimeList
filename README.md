@@ -19,14 +19,16 @@ The menu-driven interface is also allows users to manage their own personal list
 _N.B. This version doesn't quite have feature parity with the NL interface when it comes to some of underlying functionality, particularly network code. This will likely be improved in future._
 
 ## Using the application
-### Dependencies
+### Executable binaries
+To run the application, you can download the binary for your platform from the [releases](https://github.com/amrishparmar/mal_cl_interface/releases) page.
+### Running from source
+#### Dependencies
 To run from source, the following are required:
 - [Python](https://www.python.org/) v3.4+
 - [Requests](http://docs.python-requests.org/en/master/)
 - [Click](http://click.pocoo.org/6/)
 - [BeautifulSoup](https://www.crummy.com/software/BeautifulSoup/)
-
-### Running the application
+#### Executing the scripts
 For the natural language interface run the following from the root of the project:
 ```
 python nl_interface
@@ -37,8 +39,5 @@ python menuinterface
 ```
 
 You may need to replace `python` with `python3` in the commands above to run the correct version of Python, particularly on some Mac/Linux configurations.
-
-#### Binaries
-I will make executable binaries available once the first complete version is ready.
 
 Enjoy! :)
