@@ -415,8 +415,8 @@ def process(query):
         status_syns = "|".join(synonyms.terms["status"])
 
         sts1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
-                         ")?(?:({1}) )?(?:(?:to|of|as) )?(?:be )?(watch(?:ing)?|read(?:ing)?|(?:on-?)? ?hold|completed?"
-                         "|finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
+                         ")?(?:({1}) )?(?:(?:to|of|as) )?(?:(?:be|my) )?(watch(?:ing)?|read(?:ing)?|(?:on-?)? ?hold"
+                         "|completed?|finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
                          .format(update_syns, status_syns, "anime|manga"), query)
 
         # if one of the rules matched
@@ -459,14 +459,14 @@ def process(query):
     elif action == OperationType.VIEW_LIST:
         # evaluate query using rules for view list requests
 
+        result["operation"] = OperationType.VIEW_LIST
+
         # convert list of view list syns to a string separated by | chars
         viewlist_syns = "|".join(synonyms.actions["view_list"])
 
         vl1 = re.search("(?:{}) (?:me|us)?(?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
 
         if vl1:
-            result["operation"] = OperationType.VIEW_LIST
-
             if vl1.group(1) == "manga":
                 result["type"] = MediaType.MANGA
 
