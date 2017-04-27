@@ -1,10 +1,10 @@
 actions = {
-    "search": ["search", "find", "look", "get", "obtain", "give", "send", "show", "grab", "tell"],
-    "update": ["update", "change", "amend", "give", "rate", "set", "move"],
+    "search": ["search", "find", "look", "get", "obtain", "give me", "send", "show", "grab", "tell", "know"],
+    "update": ["update", "change", "amend", "give", "rate", "set", "move", "score"],
     "increment": ["increment", "increase", "update"],
     "add": ["add", "append", "put"],
     "delete": ["delete", "remove", "eliminate", "get rid of", "take"],
-    "view_list": ["get", "give", "show", "look at", "look", "what's on", "whats on", "what is on", "see", "view"]
+    "view_list": ["get", "give me", "show", "look at", "look", "what's on", "whats on", "what is on", "see", "view"]
 }
 
 terms = {

@@ -118,10 +118,7 @@ class TestDetermineAction(unittest.TestCase):
             ]
 
             for s in strings:
-                if syn != "give":
-                    self.assertEqual(qp.determine_action(s), qp.OperationType.UPDATE, "syn: {}, s: {}".format(syn, s))
-                else:
-                    self.assertEqual(qp.determine_action(s), qp.OperationType.SEARCH, "syn: {}, s: {}".format(syn, s))
+                self.assertEqual(qp.determine_action(s), qp.OperationType.UPDATE, "syn: {}, s: {}".format(syn, s))
 
     def test_update_with_ambiguity(self):
         for ssyn in synonyms.actions["update"]:
@@ -135,12 +132,8 @@ class TestDetermineAction(unittest.TestCase):
                 ]
 
                 for s in strings:
-                    if ssyn != "give":
-                        self.assertEqual(qp.determine_action(s), qp.OperationType.UPDATE,
-                                         "ssyn: {}, osyn: {}, s: {}".format(ssyn, osyn, s))
-                    else:
-                        self.assertEqual(qp.determine_action(s), qp.OperationType.SEARCH,
-                                         "ssyn: {}, osyn: {}, s: {}".format(ssyn, osyn, s))
+                    self.assertEqual(qp.determine_action(s), qp.OperationType.UPDATE, "ssyn: {}, osyn: {}, s: {}"
+                                                                                      .format(ssyn, osyn, s))
 
     def test_increment_no_ambiguity(self):
         for syn in synonyms.actions["increment"]:

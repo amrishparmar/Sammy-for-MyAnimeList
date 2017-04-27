@@ -94,9 +94,9 @@ def strip_type(term):
     # split the query term into tokens
     tokens = term.split()
 
-    if tokens[-1] == "anime":
+    if tokens[-1] in ["anime", "movie", "show", "film", "programme"]:
         return " ".join(tokens[:-1]), MediaType.ANIME
-    elif tokens[-1] == "manga":
+    elif tokens[-1] in ["manga", "comic", "manhua", "book", "novel"]:
         return " ".join(tokens[:-1]), MediaType.MANGA
 
     return term, None
@@ -208,9 +208,9 @@ def process(query):
     }
 
     # the user said hello or thank you
-    if re.match("(?:{})".format("|".join(synonyms.terms["hello"])), query):
+    if re.match("(?:{})$".format("|".join(synonyms.terms["hello"])), query):
         result["extra"] = Extras.GREETING
-    elif re.match("(?:{})".format("|".join(synonyms.terms["thank you"])), query):
+    elif re.match("(?:{})$".format("|".join(synonyms.terms["thank you"])), query):
         result["extra"] = Extras.THANKS
 
     # determine the likely type of action the user intended
@@ -346,11 +346,11 @@ def process(query):
 
         # count updates
 
-        cnt1 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:by|to) )?"
-                         "(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + "|" + increment_syns), query)
+        cnt1 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:by|to|of)"
+                         " )?(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + "|" + increment_syns), query)
         cnt2 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?"
-                         "(?:(?:of|for) )?(.+?) (?:(?:by|to) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(\d+)"
-                         .format(update_syns + "|" + increment_syns), query)
+                         "(?:(?:of|for) )?(.+?) (?:(?:by|to) )?(?:(?:a|an) )?(?:(episode|ep|chapter|chap|volume|vol)s?"
+                         " )?(?:count )?(?:(?:to|by|of) )?(\d+)".format(update_syns + "|" + increment_syns), query)
 
         # if one of the rules matched
         if cnt1 or cnt2:
@@ -384,13 +384,14 @@ def process(query):
         # convert list of score syns to a string separated by | chars
         score_syns = "|".join(synonyms.terms["score"])
 
-        scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:(?:{1}) )(?:(?:on|of) )?(?:the )?(?:({2}) )?(.+?) (?:({2}) )?"
-                         "(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
+        scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:(?:{1}) )(?:(?:on|of) )?(?:the )?(?:({2}) )?(.+?) (?:to )?(?:a )?"
+                         "(?:({2}) )?(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
         scu2 = re.search("(?:{0}) (?:(?:the|my) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a )?(?:(?:{1}) )"
                          "(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
+        scu3 = re.search("(?:rate|score) (?:({0}) )?(.+?) (?:({0}) )?(-?\d\d?)".format("anime|manga"), query)
 
         # if one of the rules matched
-        if scu1 or scu2:
+        if scu1 or scu2 or scu3:
             result["operation"] = OperationType.UPDATE
             result["modifier"] = UpdateModifier.SCORE
 
@@ -405,9 +406,10 @@ def process(query):
 
             if scu1:
                 assign_score_vals((scu1.group(1), scu1.group(3)), scu1.group(2), scu1.group(4))
-
-            else:
+            elif scu2:
                 assign_score_vals((scu2.group(1), scu2.group(3)), scu2.group(2), scu2.group(4))
+            else:
+                assign_score_vals((scu3.group(1), scu3.group(3)), scu3.group(2), scu3.group(4))
 
         # status updates
 

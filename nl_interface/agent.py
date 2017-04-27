@@ -118,7 +118,7 @@ def process_query(query):
     process_result = qp.process(query)
 
     # print out the dictionary for debug purposes (REMOVE FOR PRODUCTION!)
-    print_msg(str(process_result))
+    # print_msg(str(process_result))
 
     # the user wants to exit
     if process_result == qp.Extras.EXIT:
