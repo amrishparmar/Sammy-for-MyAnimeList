@@ -208,9 +208,9 @@ def process(query):
     }
 
     # the user said hello or thank you
-    if re.search("(?:{})".format("|".join(synonyms.terms["hello"])), query):
+    if re.match("(?:{})".format("|".join(synonyms.terms["hello"])), query):
         result["extra"] = Extras.GREETING
-    elif re.search("(?:{})".format("|".join(synonyms.terms["thank you"])), query):
+    elif re.match("(?:{})".format("|".join(synonyms.terms["thank you"])), query):
         result["extra"] = Extras.THANKS
 
     # determine the likely type of action the user intended
@@ -223,9 +223,9 @@ def process(query):
         search_syns = "|".join(synonyms.actions["search"])
         info_syns = "|".join(synonyms.terms["information"])
 
-        sm1 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of) (?:the )?)?(?:{}) (?:(?:for|on|of) "
-                        "(?:the )?)?(.+)".format(search_syns, info_syns), query)
-        sm2 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of) )?(?:the )?(.+)"
+        sm1 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of|about) (?:the )?)?(?:{}) "
+                        "(?:(?:for|on|of|about) (?:the )?)?(.+)".format(search_syns, info_syns), query)
+        sm2 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of|about) )?(?:the )?(.+)"
                         .format(search_syns + "|" + info_syns), query)
         sm3 = re.search("(?:{}) (.+)".format(search_syns), query)
 

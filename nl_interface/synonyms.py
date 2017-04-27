@@ -1,6 +1,6 @@
 actions = {
-    "search": ["search", "find", "look", "get", "obtain", "give", "send", "show", "grab"],
-    "update": ["update", "change", "amend", "give", "rate", "set"],
+    "search": ["search", "find", "look", "get", "obtain", "give", "send", "show", "grab", "tell"],
+    "update": ["update", "change", "amend", "give", "rate", "set", "move"],
     "increment": ["increment", "increase", "update"],
     "add": ["add", "append", "put"],
     "delete": ["delete", "remove", "eliminate", "get rid of", "take"],

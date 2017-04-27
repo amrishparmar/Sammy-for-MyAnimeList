@@ -1,5 +1,5 @@
 # set these to real values when testing
-username = "5hredTest"
-password = "horsedonkeypig..."
+username = "xxxxxx"
+password = "xxxxxx"
 
 credentials = username, password
