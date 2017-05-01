@@ -23,13 +23,13 @@ def threaded_action(action, msg="Loading", *args, **kwds):
     :param kwds: A dictionary, keyword arguments to pass to the action function
     :return: The return value of action function
     """
-    pool = ThreadPool(processes=1)
+    tp = ThreadPool(processes=1)
 
-    async_result = pool.apply_async(action, args=args, kwds=kwds)
+    action_result = tp.apply_async(action, args=args, kwds=kwds)
 
-    while not async_result.ready():
+    while not action_result.ready():
         loading_animation(msg)
 
     click.echo("\r{}...Finished".format(msg))
 
-    return async_result.get()
+    return action_result.get()

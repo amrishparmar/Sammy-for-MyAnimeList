@@ -216,263 +216,268 @@ def process(query):
     # determine the likely type of action the user intended
     action = determine_action(query)
 
-    if action == OperationType.SEARCH:
-        # evaluate query using rules for search requests
+    if action is not None:
+        if action == OperationType.SEARCH:
+            # evaluate query using rules for search requests
 
-        # convert list of search and info syns to a string separated by | chars
-        search_syns = "|".join(synonyms.actions["search"])
-        info_syns = "|".join(synonyms.terms["information"])
+            # convert list of search and info syns to a string separated by | chars
+            search_syns = "|".join(synonyms.actions["search"])
+            info_syns = "|".join(synonyms.terms["information"])
 
-        sm1 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of|about) (?:the )?)?(?:{}) "
-                        "(?:(?:for|on|of|about) (?:the )?)?(.+)".format(search_syns, info_syns), query)
-        sm2 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of|about) )?(?:the )?(.+)"
-                        .format(search_syns + "|" + info_syns), query)
-        sm3 = re.search("(?:{}) (.+)".format(search_syns), query)
+            sm1 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of|about) (?:the )?)?(?:{}) "
+                            "(?:(?:for|on|of|about) (?:the )?)?(.+)".format(search_syns, info_syns), query)
+            sm2 = re.search("(?:{}) (?:(?:me|us) )?(?:some )?(?:(?:for|on|of|about) )?(?:the )?(.+)"
+                            .format(search_syns + "|" + info_syns), query)
+            sm3 = re.search("(?:{}) (.+)".format(search_syns), query)
 
-        # if one of the rules matched
-        if sm1 or sm2 or sm3:
-            result["operation"] = OperationType.SEARCH
+            # if one of the rules matched
+            if sm1 or sm2 or sm3:
+                result["operation"] = OperationType.SEARCH
 
-            if sm1:
-                search_term = sm1.group(1)
-            elif sm2:
-                search_term = strip_info(sm2.group(1))
-            else:
-                search_term = strip_info(sm3.group(1))
-
-            # remove quotes or spaces from the term and get the media type
-            search_terms_stripped_tuple = strip_type(search_term.strip(" '\""))
-
-            # if there was a valid media type
-            if search_terms_stripped_tuple[1] is not None:
-                result["type"] = search_terms_stripped_tuple[1]
-
-            result["term"] = search_terms_stripped_tuple[0]
-
-    elif action == OperationType.ADD:
-        # evaluate query using rules for add requests
-
-        # convert list of add syns to a string separated by | chars
-        add_syns = "|".join(synonyms.actions["add"])
-
-        am1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:onto|to|on) )?(?:my )?(anime|manga))".format(add_syns), query)
-        am2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:onto|to|on) )?(?:my )?(anime|manga)? ?list)"
-                        .format(add_syns), query)
-        am3 = re.search("(?:{}) (.+)".format(add_syns), query)
-
-        # if one of the rules matched
-        if am1 or am2 or am3:
-            result["operation"] = OperationType.ADD
-
-            if am1:
-                add_term = am1.group(1)
-                result["type"] = MediaType.MANGA if am1.group(2) == "manga" else MediaType.ANIME
-            elif am2:
-                add_term = am2.group(1)
-                result["type"] = MediaType.MANGA if am2.group(2) == "manga" else MediaType.ANIME
-            else:
-                add_term = am3.group(1)
-
-            result["term"] = add_term.strip(" '\"")
-
-    elif action == OperationType.DELETE:
-        # evaluate query using rules for delete requests
-
-        # convert list of add syns to a string separated by | chars
-        delete_syns = "|".join(synonyms.actions["delete"])
-
-        dm1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:off )?(?:(?:from|of) )?(?:my )?(anime|manga))".format(delete_syns),
-                        query)
-        dm2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:off )?(?:(?:from|of) )?(?:my )?(anime|manga)? ?list)"
-                        .format(delete_syns), query)
-        dm3 = re.search("(?:{}) (.+)".format(delete_syns), query)
-
-        # if one of the rules matched
-        if dm1 or dm2 or dm3:
-            result["operation"] = OperationType.DELETE
-
-            def assign_delete_vals(type_group, term_group):
-                """Assign the type and term of the match groups to result"""
-                result["type"] = MediaType.MANGA if type_group == "manga" else MediaType.ANIME
-                result["term"] = term_group.strip(" '\"")
-
-            if dm1:
-                assign_delete_vals(dm1.group(2), dm1.group(1))
-            elif dm2:
-                assign_delete_vals(dm2.group(2), dm2.group(1))
-            else:
-                assign_delete_vals("anime", dm3.group(1))
-
-    elif action == OperationType.UPDATE:
-        # evaluate query using rules for update requests
-
-        # convert list of update syns to a string separated by | chars
-        update_syns = "|".join(synonyms.actions["update"])
-
-        # increment updates
-
-        # convert list of increment syns to a string separated by | chars
-        increment_syns = "|".join(synonyms.actions["increment"])
-
-        inc1 = re.search("(?:{}) (?:the )?(?:count )?(?:(?:for|on) )?(?:the )?(.+ ?) (anime|manga)"
-                         .format(increment_syns), query)
-        inc2 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:for|on) )?(.+)"
-                         .format(increment_syns), query)
-
-        # if one of the rules matched
-        if inc1 or inc2:
-            result["operation"] = OperationType.UPDATE_INCREMENT
-
-            if inc1:
-                if inc1.group(2) == "manga":
-                    result["modifier"] = UpdateModifier.CHAPTER
-                    result["type"] = MediaType.MANGA
+                if sm1:
+                    search_term = sm1.group(1)
+                elif sm2:
+                    search_term = strip_info(sm2.group(1))
                 else:
-                    result["modifier"] = UpdateModifier.EPISODE
+                    search_term = strip_info(sm3.group(1))
 
-                result["term"] = inc1.group(1).strip(" '\"")
+                # remove quotes or spaces from the term and get the media type
+                search_terms_stripped_tuple = strip_type(search_term.strip(" '\""))
 
-            elif inc2:
-                if inc2.group(1) in synonyms.terms["chapter"]:
-                    result["modifier"] = UpdateModifier.CHAPTER
-                    result["type"] = MediaType.MANGA
-                elif inc2.group(1) in synonyms.terms["volume"]:
-                    result["modifier"] = UpdateModifier.VOLUME
-                    result["type"] = MediaType.MANGA
+                # if there was a valid media type
+                if search_terms_stripped_tuple[1] is not None:
+                    result["type"] = search_terms_stripped_tuple[1]
+
+                result["term"] = search_terms_stripped_tuple[0]
+
+        elif action == OperationType.ADD:
+            # evaluate query using rules for add requests
+
+            # convert list of add syns to a string separated by | chars
+            add_syns = "|".join(synonyms.actions["add"])
+
+            am1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:onto|to|on) )?(?:my )?(anime|manga))".format(add_syns),
+                            query)
+            am2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:(?:onto|to|on) )?(?:my )?(anime|manga)? ?list)"
+                            .format(add_syns), query)
+            am3 = re.search("(?:{}) (.+)".format(add_syns), query)
+
+            # if one of the rules matched
+            if am1 or am2 or am3:
+                result["operation"] = OperationType.ADD
+
+                if am1:
+                    add_term = am1.group(1)
+                    result["type"] = MediaType.MANGA if am1.group(2) == "manga" else MediaType.ANIME
+                elif am2:
+                    add_term = am2.group(1)
+                    result["type"] = MediaType.MANGA if am2.group(2) == "manga" else MediaType.ANIME
                 else:
-                    result["modifier"] = UpdateModifier.EPISODE
+                    add_term = am3.group(1)
 
-                result["term"] = inc2.group(2).strip(" '\"")
+                result["term"] = add_term.strip(" '\"")
 
-        # count updates
+        elif action == OperationType.DELETE:
+            # evaluate query using rules for delete requests
 
-        cnt1 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:by|to|of)"
-                         " )?(?:(\d+) )(?:(?:for|on) )(.+)".format(update_syns + "|" + increment_syns), query)
-        cnt2 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?"
-                         "(?:(?:of|for) )?(.+?) (?:(?:by|to) )?(?:(?:a|an) )?(?:(episode|ep|chapter|chap|volume|vol)s?"
-                         " )?(?:count )?(?:(?:to|by|of) )?(\d+)".format(update_syns + "|" + increment_syns), query)
+            # convert list of add syns to a string separated by | chars
+            delete_syns = "|".join(synonyms.actions["delete"])
 
-        # if one of the rules matched
-        if cnt1 or cnt2:
-            result["operation"] = OperationType.UPDATE
+            dm1 = re.search("(?:{}) (?:the )?(.+?)(?: (?:off )?(?:(?:from|of) )?(?:my )?(anime|manga))"
+                            .format(delete_syns), query)
+            dm2 = re.search("(?:{}) (?:the )?(.+?)(?: (?:off )?(?:(?:from|of) )?(?:my )?(anime|manga)? ?list)"
+                            .format(delete_syns), query)
+            dm3 = re.search("(?:{}) (.+)".format(delete_syns), query)
 
-            def assign_count_vals(modifier_group, term_group, value_group):
-                """Assign the modifier, term and value of the match groups to result"""
-                if modifier_group in synonyms.terms["chapter"]:
-                    result["modifier"] = UpdateModifier.CHAPTER
-                    result["type"] = MediaType.MANGA
-                elif modifier_group in synonyms.terms["volume"]:
-                    result["modifier"] = UpdateModifier.VOLUME
-                    result["type"] = MediaType.MANGA
+            # if one of the rules matched
+            if dm1 or dm2 or dm3:
+                result["operation"] = OperationType.DELETE
+
+                def assign_delete_vals(type_group, term_group):
+                    """Assign the type and term of the match groups to result"""
+                    result["type"] = MediaType.MANGA if type_group == "manga" else MediaType.ANIME
+                    result["term"] = term_group.strip(" '\"")
+
+                if dm1:
+                    assign_delete_vals(dm1.group(2), dm1.group(1))
+                elif dm2:
+                    assign_delete_vals(dm2.group(2), dm2.group(1))
                 else:
-                    result["modifier"] = UpdateModifier.EPISODE
+                    assign_delete_vals("anime", dm3.group(1))
 
-                result["term"] = term_group.strip(" '\"")
-                result["value"] = int(value_group)
+        elif action == OperationType.UPDATE:
+            # evaluate query using rules for update requests
 
-            if cnt1:
-                assign_count_vals(cnt1.group(1), cnt1.group(3), cnt1.group(2))
+            # convert list of update syns to a string separated by | chars
+            update_syns = "|".join(synonyms.actions["update"])
 
-            else:
-                if cnt2.group(1) is not None:
-                    assign_count_vals(cnt2.group(1), cnt2.group(2), cnt2.group(4))
-                elif cnt2.group(3) is not None:
-                    assign_count_vals(cnt2.group(3), cnt2.group(2), cnt2.group(4))
+            # increment updates
 
-        # score updates
+            # convert list of increment syns to a string separated by | chars
+            increment_syns = "|".join(synonyms.actions["increment"])
 
-        # convert list of score syns to a string separated by | chars
-        score_syns = "|".join(synonyms.terms["score"])
+            inc1 = re.search("(?:{}) (?:the )?(?:count )?(?:(?:for|on) )?(?:the )?(.+ ?) (anime|manga)"
+                             .format(increment_syns), query)
+            inc2 = re.search("(?:{}) (?:the )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:for|on) )?"
+                             "(.+)".format(increment_syns), query)
 
-        scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:(?:{1}) )(?:(?:on|of) )?(?:the )?(?:({2}) )?(.+?) (?:to )?(?:a )?"
-                         "(?:({2}) )?(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
-        scu2 = re.search("(?:{0}) (?:(?:the|my) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a )?(?:(?:{1}) )"
-                         "(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
-        scu3 = re.search("(?:rate|score) (?:({0}) )?(.+?) (?:({0}) )?(-?\d\d?)".format("anime|manga"), query)
+            # if one of the rules matched
+            if inc1 or inc2:
+                result["operation"] = OperationType.UPDATE_INCREMENT
 
-        # if one of the rules matched
-        if scu1 or scu2 or scu3:
-            result["operation"] = OperationType.UPDATE
-            result["modifier"] = UpdateModifier.SCORE
+                if inc1:
+                    if inc1.group(2) == "manga":
+                        result["modifier"] = UpdateModifier.CHAPTER
+                        result["type"] = MediaType.MANGA
+                    else:
+                        result["modifier"] = UpdateModifier.EPISODE
 
-            def assign_score_vals(type_groups, term_group, value_group):
-                if type_groups[0] == "manga" or type_groups[1] == "manga":
+                    result["term"] = inc1.group(1).strip(" '\"")
+
+                elif inc2:
+                    if inc2.group(1) in synonyms.terms["chapter"]:
+                        result["modifier"] = UpdateModifier.CHAPTER
+                        result["type"] = MediaType.MANGA
+                    elif inc2.group(1) in synonyms.terms["volume"]:
+                        result["modifier"] = UpdateModifier.VOLUME
+                        result["type"] = MediaType.MANGA
+                    else:
+                        result["modifier"] = UpdateModifier.EPISODE
+
+                    result["term"] = inc2.group(2).strip(" '\"")
+
+            # count updates
+
+            cnt1 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?"
+                             "(?:(?:by|to|of) )?(?:(\d+) )(?:(?:for|on) )(.+)"
+                             .format(update_syns + "|" + increment_syns), query)
+            cnt2 = re.search("(?:{}) (?:(?:the|my) )?(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?"
+                             "(?:(?:of|for) )?(.+?) (?:(?:by|to) )?(?:(?:a|an) )?"
+                             "(?:(episode|ep|chapter|chap|volume|vol)s? )?(?:count )?(?:(?:to|by|of) )?(\d+)"
+                             .format(update_syns + "|" + increment_syns), query)
+
+            # if one of the rules matched
+            if cnt1 or cnt2:
+                result["operation"] = OperationType.UPDATE
+
+                def assign_count_vals(modifier_group, term_group, value_group):
+                    """Assign the modifier, term and value of the match groups to result"""
+                    if modifier_group in synonyms.terms["chapter"]:
+                        result["modifier"] = UpdateModifier.CHAPTER
+                        result["type"] = MediaType.MANGA
+                    elif modifier_group in synonyms.terms["volume"]:
+                        result["modifier"] = UpdateModifier.VOLUME
+                        result["type"] = MediaType.MANGA
+                    else:
+                        result["modifier"] = UpdateModifier.EPISODE
+
+                    result["term"] = term_group.strip(" '\"")
+                    result["value"] = int(value_group)
+
+                if cnt1:
+                    assign_count_vals(cnt1.group(1), cnt1.group(3), cnt1.group(2))
+
+                else:
+                    if cnt2.group(1) is not None:
+                        assign_count_vals(cnt2.group(1), cnt2.group(2), cnt2.group(4))
+                    elif cnt2.group(3) is not None:
+                        assign_count_vals(cnt2.group(3), cnt2.group(2), cnt2.group(4))
+
+            # score updates
+
+            # convert list of score syns to a string separated by | chars
+            score_syns = "|".join(synonyms.terms["score"])
+
+            scu1 = re.search("(?:{0}) (?:(?:the|my) )?(?:(?:{1}) )(?:(?:on|of) )?(?:the )?(?:({2}) )?(.+?) "
+                             "(?:to )?(?:a )?(?:({2}) )?(?:(?:to|of) )?(-?\d\d?)"
+                             .format(update_syns, score_syns, "anime|manga"), query)
+            scu2 = re.search("(?:{0}) (?:(?:the|my) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a )?(?:(?:{1}) )"
+                             "(?:(?:to|of) )?(-?\d\d?)".format(update_syns, score_syns, "anime|manga"), query)
+            scu3 = re.search("(?:rate|score) (?:({0}) )?(.+?) (?:({0}) )?(-?\d\d?)".format("anime|manga"), query)
+
+            # if one of the rules matched
+            if scu1 or scu2 or scu3:
+                result["operation"] = OperationType.UPDATE
+                result["modifier"] = UpdateModifier.SCORE
+
+                def assign_score_vals(type_groups, term_group, value_group):
+                    if type_groups[0] == "manga" or type_groups[1] == "manga":
+                        result["type"] = MediaType.MANGA
+                    else:
+                        result["type"] = MediaType.ANIME
+
+                    result["term"] = term_group.strip(" '\"")
+                    result["value"] = int(value_group)
+
+                if scu1:
+                    assign_score_vals((scu1.group(1), scu1.group(3)), scu1.group(2), scu1.group(4))
+                elif scu2:
+                    assign_score_vals((scu2.group(1), scu2.group(3)), scu2.group(2), scu2.group(4))
+                else:
+                    assign_score_vals((scu3.group(1), scu3.group(3)), scu3.group(2), scu3.group(4))
+
+            # status updates
+
+            # convert list of status syns to a string separated by | chars
+            status_syns = "|".join(synonyms.terms["status"])
+
+            sts1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?"
+                             "(?:a )?(?:({1}) )?(?:(?:to|of|as) )?(?:(?:be|my) )?(watch(?:ing)?|read(?:ing)?|(?:on-?)?"
+                             " ?hold|completed?|finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
+                             .format(update_syns, status_syns, "anime|manga"), query)
+
+            # if one of the rules matched
+            if sts1:
+                result["operation"] = OperationType.UPDATE
+                result["modifier"] = UpdateModifier.STATUS
+                result["term"] = sts1.group(3).strip(" '\"")
+
+                if sts1.group(2) == "manga" or sts1.group(4) == "manga":
                     result["type"] = MediaType.MANGA
                 else:
                     result["type"] = MediaType.ANIME
 
-                result["term"] = term_group.strip(" '\"")
-                result["value"] = int(value_group)
+                status = sts1.group(6)
 
-            if scu1:
-                assign_score_vals((scu1.group(1), scu1.group(3)), scu1.group(2), scu1.group(4))
-            elif scu2:
-                assign_score_vals((scu2.group(1), scu2.group(3)), scu2.group(2), scu2.group(4))
-            else:
-                assign_score_vals((scu3.group(1), scu3.group(3)), scu3.group(2), scu3.group(4))
+                if status in synonyms.terms["watching"]:
+                    result["value"] = StatusType.WATCHING
+                    result["type"] = MediaType.ANIME
+                elif status in synonyms.terms["reading"]:
+                    result["value"] = StatusType.READING
+                    result["type"] = MediaType.MANGA
+                elif status in synonyms.terms["on hold"]:
+                    result["value"] = StatusType.ON_HOLD
+                elif status in synonyms.terms["completed"]:
+                    result["value"] = StatusType.COMPLETED
+                elif status in synonyms.terms["dropped"]:
+                    result["value"] = StatusType.DROPPED
+                elif status in synonyms.terms["plan to watch"]:
+                    result["value"] = StatusType.WATCHING
+                    result["type"] = MediaType.ANIME
+                elif status in synonyms.terms["plan to read"]:
+                    result["value"] = StatusType.READING
+                    result["type"] = MediaType.MANGA
+                elif status in synonyms.terms["plan"]:
+                    if result["type"] == MediaType.ANIME:
+                        result["value"] = StatusType.PLAN_TO_WATCH
+                    else:
+                        result["value"] = StatusType.PLAN_TO_READ
 
-        # status updates
+        elif action == OperationType.VIEW_LIST:
+            # evaluate query using rules for view list requests
 
-        # convert list of status syns to a string separated by | chars
-        status_syns = "|".join(synonyms.terms["status"])
+            result["operation"] = OperationType.VIEW_LIST
 
-        sts1 = re.search("(?:{0}) (?:(?:the|my) )?(?:({1}) )?(?:(?:on|of) )?(?:({2}) )?(.+?) (?:({2}) )?(?:with )?(?:a "
-                         ")?(?:({1}) )?(?:(?:to|of|as) )?(?:(?:be|my) )?(watch(?:ing)?|read(?:ing)?|(?:on-?)? ?hold"
-                         "|completed?|finish(?:ed)?|drop(?:ped)?|plan(?:ning)?(?: to (?:watch|read)?)?)"
-                         .format(update_syns, status_syns, "anime|manga"), query)
+            # convert list of view list syns to a string separated by | chars
+            viewlist_syns = "|".join(synonyms.actions["view_list"])
 
-        # if one of the rules matched
-        if sts1:
-            result["operation"] = OperationType.UPDATE
-            result["modifier"] = UpdateModifier.STATUS
-            result["term"] = sts1.group(3).strip(" '\"")
+            vl1 = re.search("(?:{}) (?:me|us)?(?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
 
-            if sts1.group(2) == "manga" or sts1.group(4) == "manga":
+            if vl1:
+                if vl1.group(1) == "manga":
+                    result["type"] = MediaType.MANGA
+            elif query.split()[-1] == "manga":
                 result["type"] = MediaType.MANGA
-            else:
-                result["type"] = MediaType.ANIME
-
-            status = sts1.group(6)
-
-            if status in synonyms.terms["watching"]:
-                result["value"] = StatusType.WATCHING
-                result["type"] = MediaType.ANIME
-            elif status in synonyms.terms["reading"]:
-                result["value"] = StatusType.READING
-                result["type"] = MediaType.MANGA
-            elif status in synonyms.terms["on hold"]:
-                result["value"] = StatusType.ON_HOLD
-            elif status in synonyms.terms["completed"]:
-                result["value"] = StatusType.COMPLETED
-            elif status in synonyms.terms["dropped"]:
-                result["value"] = StatusType.DROPPED
-            elif status in synonyms.terms["plan to watch"]:
-                result["value"] = StatusType.WATCHING
-                result["type"] = MediaType.ANIME
-            elif status in synonyms.terms["plan to read"]:
-                result["value"] = StatusType.READING
-                result["type"] = MediaType.MANGA
-            elif status in synonyms.terms["plan"]:
-                if result["type"] == MediaType.ANIME:
-                    result["value"] = StatusType.PLAN_TO_WATCH
-                else:
-                    result["value"] = StatusType.PLAN_TO_READ
-
-    elif action == OperationType.VIEW_LIST:
-        # evaluate query using rules for view list requests
-
-        result["operation"] = OperationType.VIEW_LIST
-
-        # convert list of view list syns to a string separated by | chars
-        viewlist_syns = "|".join(synonyms.actions["view_list"])
-
-        vl1 = re.search("(?:{}) (?:me|us)?(?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
-
-        if vl1:
-            if vl1.group(1) == "manga":
-                result["type"] = MediaType.MANGA
-        elif query.split()[-1] == "manga":
-            result["type"] = MediaType.MANGA
 
     # return the filled out dictionary
     return result

@@ -40,13 +40,13 @@ def display_entry_details(entry):
 
 
 def search(credentials, search_type, search_string, display_details=True):
-    """Search for an anime or manga entry and return it
+    """Search for an anime or manga entry
 
     :param credentials: A tuple containing valid MAL account details in the format (username, password)
     :param search_type: A string denoting the media type to search for, should be either "anime" or "manga"
     :param search_string: A string, the anime or manga to search for
     :param display_details: A boolean, whether to print the details of the found entry or whether to just return it
-    :return:
+    :return: A beautiful soup tag, or a network status code if there was an error or the user quit
     """
     if search_type not in ["anime", "manga"]:
         raise ValueError("Invalid argument for {}, must be either {} or {}.".format(search_type, "anime", "manga"))
