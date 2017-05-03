@@ -471,7 +471,7 @@ def process(query):
             # convert list of view list syns to a string separated by | chars
             viewlist_syns = "|".join(synonyms.actions["view_list"])
 
-            vl1 = re.search("(?:{}) (?:me|us)?(?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
+            vl1 = re.search("(?:{}) (?:(?:me|us) )?(?:my )?(?:(anime|manga) )?(?:list)".format(viewlist_syns), query)
 
             if vl1:
                 if vl1.group(1) == "manga":

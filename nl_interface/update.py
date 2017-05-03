@@ -334,11 +334,11 @@ def view_list(username, search_type):
 
         soup = BeautifulSoup(r.raw, "xml")
 
+        # use a different layout depending on whether it is anime or manga
+        layout_string = "{}) {}" + "\n    - {}: {}" * (4 if search_type == "anime" else 5)
+
         i = 1
         for entry in soup.find_all(search_type):
-            # use a different layout depending on whether it is anime or manga
-            layout_string = "{}) {}" + "\n    - {}: {}" * (4 if search_type == "anime" else 5)
-
             if search_type == "anime":
                 click.echo(layout_string.format(
                     i, entry.series_title.get_text(),
