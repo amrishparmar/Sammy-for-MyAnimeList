@@ -1,4 +1,4 @@
-# MyAnimeList CLI and NL Query Application
+# Sammy for MyAnimeList
 An application for updating and retrieving information from [MyAnimeList.net](https://www.myanimelist.net) (MAL) using natural language queries.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
