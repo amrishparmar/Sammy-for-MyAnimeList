@@ -1,4 +1,4 @@
-**NOTE: This application does not work due to MALs deactivation of the API**
+**NOTE: This application was based on an older, unsupported version of the MAL API, so most features of this program will no longer work anymore**
 
 # Sammy for MyAnimeList
 An application for updating and retrieving information from [MyAnimeList.net](https://www.myanimelist.net) (MAL) using natural language queries.
